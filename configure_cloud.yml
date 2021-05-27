@@ -1,0 +1,146 @@
+---
+- hosts: "localhost"
+  connection: "local"
+  roles:
+    - role: "avinetworks.avisdk"
+  vars_files:
+    - "generic.yml"
+  vars:
+    usable_networks: []
+    create_dns_provider: "{{ (dns_config.service_domains|default([]))|length>0 }}"
+
+  tasks:
+    - name: "Create Avi IPAM Provider"
+      avi_ipamdnsproviderprofile:
+        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        name: '{{ "VMware-IPAM-" + cloud_parameters.name }}'
+        type: "IPAMDNS_TYPE_INTERNAL"
+        allocate_ip_in_vrf: false
+      register: ipamprovider
+
+    - name: "Create Avi DNS Provider"
+      avi_ipamdnsproviderprofile:
+        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        name: '{{ "VMware-DNS-" + cloud_parameters.name }}'
+        type: IPAMDNS_TYPE_INTERNAL_DNS
+        internal_profile:
+          dns_service_domain: "{{ dns_config.service_domains }}"
+      when: create_dns_provider
+
+    - name: "Configure vSphere Cloud"
+      avi_cloud:
+        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        name: "{{ cloud_parameters.name }}"
+        vcenter_configuration:
+          datacenter: "{{ cloud_parameters.datacenter }}"
+          privilege: "WRITE_ACCESS"
+          username: "{{ cloud_parameters.username }}"
+          password: "{{ cloud_parameters.password }}"
+          vcenter_url: "{{ cloud_parameters.vcenter }}"
+        vtype: "CLOUD_VCENTER"
+        ipam_provider_ref: "{{ ipamprovider.obj.url }}"
+        dns_provider_ref: '{{ "/api/ipamdnsproviderprofile/?name=VMware-DNS-" + cloud_parameters.name if create_dns_provider else None }}'
+      register: cloud
+
+    - name: "Wait for network sync for cloud to complete..."
+      avi_api_session:
+        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        http_method: "get"
+        path: "cloudruntime"
+        params:
+          name: "{{ cloud_parameters.name }}"
+      register: cloudruntime
+      until: cloudruntime.obj.results[0].network_sync_complete
+      retries: 30
+      delay: 5
+
+    - name: "Configure cloud management network"
+      avi_cloud:
+        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        http_method: "patch"
+        path: '{{ "cloud/" + cloud.obj.uuid }}'
+        data:
+          replace:
+            vcenter_configuration:
+              management_ip_subnet: "{{ cloud_parameters.management_ip_subnet }}"
+              management_network: '{{ "/api/vimgrnwruntime/?name=" + cloud_parameters.management_network }}'
+
+    - name: "Configure management default route"
+      avi_vrfcontext:
+        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        name: "management"
+        cloud_ref: '{{ "/api/cloud/?name=" + cloud_parameters.name }}'
+        static_routes:
+          - next_hop:
+              addr: "{{ cloud_parameters.management_gateway }}"
+              type: "V4"
+            prefix:
+              ip_addr:
+                addr: "0.0.0.0"
+                type: "V4"
+              mask: 0
+            route_id: "1"
+
+    - name: "Configure networks"
+      avi_network:
+        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        name: "{{ item.name }}"
+        cloud_ref: '{{ "/api/cloud/?name=" + cloud_parameters.name }}'
+        dhcp_enabled: false
+        ip6_autocfg_enabled: false
+        exclude_discovered_subnets: true
+        configured_subnets:
+          - prefix:
+              ip_addr:
+                addr: "{{ item.addr }}"
+                type: "V4"
+              mask: "{{ item.mask }}"
+            static_ip_ranges: "{{ item.static_ip_ranges | default(omit)}}"
+            static_ranges: "{{ item.static_ranges | default(omit)}}"
+      loop: "{{ ipam_config }}"
+
+    - name: "Collate usable subnets"
+      set_fact:
+        usable_networks: '{{ usable_networks + [{"nw_ref": "/api/network/?name=" + item.name}] }}'
+      when: item.add_to_ipam == true
+      loop: "{{ ipam_config }}"
+
+    - name: "Add usable subnets to IPAM"
+      avi_api_session:
+        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        http_method: "patch"
+        path: '{{ "ipamdnsproviderprofile/" + ipamprovider.obj.uuid }}'
+        data:
+          replace:
+            internal_profile:
+              usable_networks: "{{ usable_networks }}"
+
+    - name: "Configure SE Groups"
+      avi_serviceenginegroup:
+        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        name: "{{ item.name }}"
+        vcenter_folder: '{{ item.vcenter_folder | default("Roberto/SEs") }}'
+        se_name_prefix: '{{ item.se_name_prefix | default("rcse") }}'
+        max_vs_per_se: "{{ item.max_vs_per_se | default(omit) }}"
+        max_se: "{{ item.max_se | default(omit) }}"
+        min_scaleout_per_vs: "{{ item.min_scale | default(1) }}"
+        vcpus_per_se: "{{ item.vcpus_per_se | default(1) }}"
+        memory_per_se: "{{ item.memory_per_se | default(2048) }}"
+        disk_per_se: "{{ item.disk_per_se | default(15) }}"
+        cpu_reserve: "{{ item.cpu_reserve | default(false) }}"
+        mem_reserve: "{{ item.mem_reserve | default(false) }}"
+        vcenter_hosts: "{{ item.vcenter_hosts | default(omit) }}"
+        ha_mode: "{{ item.ha_mode | default(omit) }}"
+        algo: "{{ item.algo | default(omit) }}"
+        buffer_se: "{{ item.buffer_se | default(omit) }}"
+        se_deprovision_delay: "{{ item.se_deprovision_delay | default(omit) }}"
+      loop: "{{ seg_config }}"

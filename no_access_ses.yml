@@ -1,0 +1,39 @@
+cloud_name: "Default-Cloud"
+se_mask: "255.255.255.0"
+se_gw: "100.64.66.254"
+se_dns: "SERVERS:10.206.112.66;DOMAIN:rc.demo.avi.local"
+specify_cloud: false
+se_group: "Default-Group"
+se_mgmt_pg: "vxw-dvs-34-virtualwire-62-sid-6120061-wdc-06-vc12-avi-dev058"
+avi_internal_pg: "Avi Internal"
+se_list:
+#  - ip: "100.64.66.232"
+#    name: "rcse1-na-02"
+#    data_nics1:
+#      pg_name: "vxw-dvs-34-virtualwire-62-sid-6120061-wdc-06-vc12-avi-dev058"
+#      ip: "100.64.66.237"
+#      mask: 24
+#    data_nics2:
+#      pg_name: "vxw-dvs-34-virtualwire-63-sid-6120062-wdc-06-vc12-avi-dev059"
+#      ip: "100.64.67.237"
+#      mask: 24
+#  - ip: "100.64.66.233"
+#    name: "rcse1-na-03"
+#    data_nics1:
+#      pg_name: "vxw-dvs-34-virtualwire-62-sid-6120061-wdc-06-vc12-avi-dev058"
+#      ip: "100.64.66.238"
+#      mask: 24
+#    data_nics2:
+#      pg_name: "vxw-dvs-34-virtualwire-63-sid-6120062-wdc-06-vc12-avi-dev059"
+#      ip: "100.64.67.238"
+#      mask: 24
+  - ip: "100.64.66.234"
+    name: "rcse1-na-04"
+    data_nics1:
+      pg_name: "vxw-dvs-34-virtualwire-62-sid-6120061-wdc-06-vc12-avi-dev058"
+      ip: "100.64.66.239"
+      mask: 24
+    data_nics2:
+      pg_name: "vxw-dvs-34-virtualwire-63-sid-6120062-wdc-06-vc12-avi-dev059"
+      ip: "100.64.67.239"
+      mask: 24

@@ -1,0 +1,59 @@
+---
+- hosts: all
+  vars_files:
+    - "generic.yml"
+  roles:
+    - role: "avinetworks.avisdk"
+  tasks:
+    - name: "Set some facts"
+      set_fact:
+        cloud_uuid: '{{ lookup("avi", avi_credentials=avi_credentials, obj_name=cloud_name, obj_type="cloud").uuid }}'
+        cluster_uuid: '{{ lookup("avi", avi_credentials=avi_credentials, obj_type="cluster").uuid }}'
+      delegate_to: "localhost"
+
+    - name: "Get Service Engine Group"
+      avi_api_session:
+        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        http_method: "get"
+        path: "serviceenginegroup"
+        params:
+          name: "{{ se_group }}"
+          cloud_uuid: "{{ cloud_uuid }}"
+      register: api_results
+      delegate_to: "localhost"
+
+    - set_fact:
+        avi_se_type: 'NETWORKADMIN{{ (",AVICLOUD_UUID:" + cloud_uuid if specify_cloud else "") }}'
+        segroup_url: "{{ api_results.obj.results[0].url }}"
+
+    - name: "Ensure SE image is built"
+      avi_api_session:
+        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        http_method: "post"
+        timeout: 600
+        path: "fileservice/seova"
+        data:
+          file_format: "ova"
+          cloud_uuid: "{{ cloud_uuid }}"
+      register: se_image_status
+      delegate_to: "localhost"
+
+    - name: "Download SE image from Controller"
+      avi_api_fileservice:
+        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        path: "seova"
+        upload: false
+        timeout: 300
+        params:
+          cloud_uuid: "{{ cloud_uuid }}"
+          file_format: "ova"
+        file_path: '{{ "./se.ova" }}'
+
+    - name: Create SE VMs
+      include_tasks: deploy_one_se.yml
+      loop: "{{ se_list }}"
+      loop_control:
+        loop_var: se_item

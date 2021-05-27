@@ -1,0 +1,123 @@
+---
+- hosts: all
+  roles:
+    - role: "avinetworks.avisdk"
+  vars_files:
+    - "upgrade_data.yml"
+  tasks:
+    - name: "Checking if base image already uploaded to Controller..."
+      avi_api_session:
+        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        http_method: "get"
+        path: "/image"
+        params:
+          controller_info.build.version: "{{ upgrade_version }}"
+          type: "IMAGE_TYPE_SYSTEM"
+      register: upgrade_image
+      when: upgrade_version is defined
+    - name: "Uploading base image file to Controller..."
+      avi_api_image:
+        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        file_path: '{{ "/mnt/builds/" + upgrade_version + "/" + upgrade_build + "/controller.pkg" }}'
+      when:
+        - upgrade_version is defined
+        - upgrade_image.obj.count == 0
+
+    - name: "Checking if Controller patch image already uploaded to Controller..."
+      avi_api_session:
+        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        http_method: "get"
+        path: "/image"
+        params:
+          controller_info.build.version: "{{ controller_patch_version.split('-')[0] }}"
+          controller_info.build.patch_version: "{{ controller_patch_version.split('-')[1] }}"
+          type: "IMAGE_TYPE_PATCH"
+      register: controller_patch_image
+      when: controller_patch_version is defined
+    - name: "Upload Controller patch file..."
+      avi_api_image:
+        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        file_path: '{{ "/mnt/builds/" + controller_patch_version + "/" + controller_patch_build + "/controller_patch.pkg" }}'
+      when:
+        - controller_patch_version is defined
+        - controller_patch_image.obj.count == 0
+
+    - name: "Checking if SE patch image already uploaded to Controller.."
+      avi_api_session:
+        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        http_method: "get"
+        path: "/image"
+        params:
+          se_info.build.version: "{{ se_patch_version.split('-')[0] }}"
+          se_info.build.patch_version: "{{ se_patch_version.split('-')[1] }}"
+          type: "IMAGE_TYPE_PATCH"
+      register: se_patch_image
+      when: se_patch_version is defined
+    - name: "Upload SE patch file..."
+      avi_api_image:
+        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        file_path: '{{ "/mnt/builds/" + se_patch_version + "/" + se_patch_build + "/se_patch.pkg" }}'
+      when:
+        - se_patch_version is defined
+        - se_patch_image.obj.count == 0
+
+    - name: "Getting base image ID..."
+      avi_api_session:
+        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        http_method: "get"
+        path: "/image"
+        params:
+          controller_info.build.version: "{{ upgrade_version }}"
+          type: "IMAGE_TYPE_SYSTEM"
+      register: upgrade_image
+      when:
+        - upgrade_version is defined
+    - name: "Getting Controller patch image ID..."
+      avi_api_session:
+        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        http_method: "get"
+        path: "/image"
+        params:
+          controller_info.build.version: "{{ controller_patch_version.split('-')[0] }}"
+          controller_info.build.patch_version: "{{ controller_patch_version.split('-')[1] }}"
+          type: "IMAGE_TYPE_PATCH"
+      register: controller_patch_image
+      when:
+        - controller_patch_version is defined
+    - name: "Getting SE patch image ID..."
+      avi_api_session:
+        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        http_method: "get"
+        path: "/image"
+        params:
+          se_info.build.version: "{{ se_patch_version.split('-')[0] }}"
+          se_info.build.patch_version: "{{ se_patch_version.split('-')[1] }}"
+          type: "IMAGE_TYPE_PATCH"
+      register: se_patch_image
+      when:
+        - se_patch_version is defined
+
+    - name: "Performing upgrade..."
+      avi_api_session:
+        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        http_method: post
+        timeout: 300
+        path: "upgrade"
+        data:
+          system: "{{ upgrade_options.system | default(true) }}"
+          skip_warnings: "{{ upgrade_options.skip_warnings | default(omit) }}"
+          suspend_on_failure: "{{ upgrade_options.suspend_on_failure | default(omit) }}"
+          disruptive: "{{ upgrade_options.disruptive | default(omit) }}"
+          image_uuid: "{{ upgrade_image.obj.results[0].uuid | default(omit) }}"
+          controller_patch_uuid: "{{ controller_patch_image.obj.results[0].uuid | default(omit) }}"
+          se_patch_uuid: "{{ se_patch_image.obj.results[0].uuid | default(omit) }}"

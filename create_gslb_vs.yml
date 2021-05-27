@@ -1,0 +1,81 @@
+---
+- hosts: "localhost"
+  connection: "local"
+  roles:
+    - role: "avinetworks.avisdk"
+  vars_files:
+    - "gslb.yml"
+  vars:
+    gslb_pool_members: []
+
+  tasks:
+    - name: "Create VSVip"
+      avi_vsvip:
+        avi_credentials: "{{ item.avi_credentials | default(omit)}}"
+        name: '{{ "vsvip-" + vs_parameters.name + "-vip"}}'
+        cloud_ref: '{{ "/api/cloud/?name=" + cloud_parameters.name }}'
+        vip:
+          - enabled: true
+            auto_allocate_ip: true
+            ipam_network_subnet: "{{ vs_parameters.ipam_network_subnet }}"
+            vip_id: "1"
+        dns_info:
+          - fqdn: '{{ vs_parameters.name + "." + item.domain_name }}'
+      register: vsvip
+      loop: "{{ gslb_controllers }}"
+
+    - name: "Create Pools"
+      avi_pool:
+        avi_credentials: "{{ item.avi_credentials | default(omit)}}"
+        name: '{{ vs_parameters.name + "-pool"}}'
+        lb_algorithm: LB_ALGORITHM_ROUND_ROBIN
+        servers: "{{ vs_parameters.pool_members }}"
+        cloud_ref: '{{ "/api/cloud/?name=" + cloud_parameters.name }}'
+      register: pool
+      loop: "{{ gslb_controllers }}"
+
+    - name: "Create Virtual Services"
+      avi_virtualservice:
+        avi_credentials: "{{ item.avi_credentials | default(omit) }}"
+        name: "{{ vs_parameters.name }}"
+        vsvip_ref: "{{ vsvip.results[i].obj.url }}"
+        pool_ref: "{{ pool.results[i].obj.url }}"
+        cloud_ref: '{{ "/api/cloud/?name=" + cloud_parameters.name }}'
+        application_profile_ref: "/api/applicationprofile/?name=System-Secure-HTTP"
+        services:
+          - enable_ssl: false
+            port: 80
+          - enable_ssl: true
+            port: 443
+        enabled: true
+        se_group_ref: "/api/serviceenginegroup/?name=Default-Group"
+        ssl_key_and_certificate_refs:
+          - "/api/sslkeyandcertificate/?name=System-Default-Cert"
+          - "/api/sslkeyandcertificate/?name=System-Default-Cert-EC"
+        ssl_profile_ref: "/api/sslprofile/?name=System-Standard"
+      register: virtualservice
+      loop: "{{ gslb_controllers }}"
+      loop_control:
+        index_var: i
+
+    - name: "Build GSLB Pool Members"
+      set_fact:
+        gslb_pool_members: '{{ gslb_pool_members + [{"cluster_uuid": item.cluster_uuid, "vs_uuid": virtualservice.results[i].obj.uuid, "ip": vsvip.results[i].obj.vip[0].ip_address, "enabled": true}]}}'
+      loop: "{{ gslb_controllers }}"
+      loop_control:
+        index_var: i
+
+    - name: "Create GSLB Service"
+      avi_gslbservice:
+        avi_credentials: "{{ gslb_controllers[0].avi_credentials | default(omit) }}"
+        name: "{{ gslb_parameters.name }}"
+        domain_names:
+        - "{{ gslb_parameters.fqdn }}"
+        controller_health_status_enabled: true
+        health_monitor_refs:
+        - "/api/healthmonitor/?name=System-GSLB-HTTP"
+        groups:
+        - algorithm: "GSLB_ALGORITHM_ROUND_ROBIN"
+          enabled: true
+          members: "{{ gslb_pool_members }}"
+          name: '{{ gslb_parameters.name + "-pool"}}'

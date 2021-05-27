@@ -1,0 +1,69 @@
+system_configuration:
+  dns_configuration:
+    search_domain: "rc.demo.avi.local"
+    server_list:
+      - addr: "10.206.112.66"
+        type: "V4"
+  ntp_configuration:
+    ntp_servers:
+      - server:
+          addr: "10.206.112.66"
+          type: "V4"
+  global_tenant_config:
+    se_in_provider_context: true
+    tenant_access_to_provider_se: true
+    tenant_vrf: false
+  backup_passphrase: '{{ avi_admin_password }}'
+
+cloud_parameters:
+  name: '{{ cloud_name | default("Default-Cloud") }}'
+  vcenter: "wdc-06-vc12.oc.vmware.com"
+  username: "aviuser6"
+  password: "AviUser1234!."
+  datacenter: "wdc-06-vc12"
+  datastore: "wdc-06-vc12c01-vsan"
+  cluster: "wdc-06-vc12c01"
+  management_network: "vxw-dvs-34-virtualwire-62-sid-6120061-wdc-06-vc12-avi-dev058"
+  management_ip_subnet:
+    ip_addr:
+      addr: "100.64.66.0"
+      type: "V4"
+    mask: 24
+  management_gateway: "100.64.66.254"
+  controller_network: "vxw-dvs-34-virtualwire-3-sid-6120002-wdc-06-vc12-avi-mgmt"
+  controller_folder: "Roberto/Controllers"
+  no_access_folder: "Roberto/SEs"
+
+vs_parameters:
+  name: "rc-ansible-demo"
+  fqdn: '{{ "rc-ansible-demo" + ("." + dns_config.service_domains[0].domain_name if (dns_config.service_domains|default([]))|length>0 else "") }}'
+  ipam_network_subnet:
+    subnet:
+      ip_addr:
+        type: "V4"
+        addr: "100.64.66.0"
+      mask: 24
+  pool_members:
+    - ip:
+        addr: "100.64.67.71"
+        type: "V4"
+    - ip:
+        addr: "100.64.67.72"
+        type: "V4"
+
+ldap_parameters:
+  profile_name: "Controller-LDAP-Auth"
+  base_dn: "DC=rc,DC=demo,DC=avi,DC=local"
+  admin_bind_dn: "CN=ldapbind,CN=Users,DC=rc,DC=demo,DC=avi,DC=local"
+  group_search_dn: "DC=rc,DC=demo,DC=avi,DC=local"
+  user_search_dn: "DC=rc,DC=demo,DC=avi,DC=local"
+  password: "{{ ldapbind_password }}"
+  servers:
+    - "10.206.112.66"
+  mapping_rules:
+    - index: 1
+      group_match:
+        criteria: "AUTH_MATCH_CONTAINS"
+        groups:
+          - "Avi-Admins"
+      is_superuser: true

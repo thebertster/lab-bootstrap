@@ -1,0 +1,18 @@
+---
+- hosts: "localhost"
+  connection: "local"
+  roles:
+    - role: "avinetworks.avisdk"
+  vars_files:
+    - "generic.yml"
+  tasks:
+    - name: "Create PHPSESSID Persistence Profile"
+      avi_applicationpersistenceprofile:
+        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        name: "Persist-PHPSESSID"
+        app_cookie_persistence_profile:
+          prst_hdr_name: "PHPSESSID"
+          timeout: 20
+        persistence_type: "PERSISTENCE_TYPE_APP_COOKIE"
+        server_hm_down_recovery: "HM_DOWN_PICK_NEW_SERVER"

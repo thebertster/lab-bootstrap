@@ -1,0 +1,48 @@
+---
+- hosts: all
+  vars_files:
+    - "deploy.yml"
+  tasks:
+    - name: "Prepare environment..."
+      tempfile:
+        state: "directory"
+        path: "~"
+        prefix: "deploy"
+      register: tmp_dir
+
+    - name: '{{ "Extract docker installer for version " + controller_version }}'
+      unarchive:
+        remote_src: "yes"
+        src: '{{ "/mnt/builds/" + controller_version + "/" + build_name + "/docker_install.tar.gz" }}'
+        dest: "{{ tmp_dir.path }}"
+
+    - name: "Install Controller..."
+      expect:
+        command: '{{ "./avi_baremetal_setup.py -c -cc " + num_cpu + " -cm " + mem + " -i " + ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0]) }}'
+        chdir: "{{ tmp_dir.path }}"
+        timeout: null
+        responses:
+          "do you want to remove and continue": "y"
+
+    - name: "remove tmp_dir"
+      file:
+        path: "{{ tmp_dir.path }}"
+        state: "absent"
+
+    - name: "Wait for Controller to be up..."
+      uri:
+        url: '{{ "https://" + ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0]) + "/" }}'
+        return_content: "yes"
+        validate_certs: "no"
+      delegate_to: "localhost"
+      register: result
+      until: "result.content.find('Avi Vantage Controller') != -1"
+      retries: 20
+      delay: 30
+
+- import_playbook: bootstrap.yml
+- import_playbook: configure_sslcerts.yml
+- import_playbook: configure_cloud.yml
+- import_playbook: configure_dns.yml
+- import_playbook: create_persistence.yml
+- import_playbook: create_vs.yml

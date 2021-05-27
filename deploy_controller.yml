@@ -1,0 +1,41 @@
+---
+- hosts: all
+  vars_files:
+    - "deploy.yml"
+    - "generic.yml"
+
+  tasks:
+    - name: "Deploy Avi Controller"
+      community.vmware.vmware_deploy_ovf:
+        hostname: "{{ cloud_parameters.vcenter }}"
+        username: "{{ cloud_parameters.username }}"
+        password: "{{ cloud_parameters.password }}"
+        datacenter: "{{ cloud_parameters.datacenter }}"
+        cluster:  "{{ cloud_parameters.cluster }}"
+        datastore: "{{ cloud_parameters.datastore }}"
+        name: "{{ controller_name }}"
+        networks:  '{u"Management":u"{{ cloud_parameters.controller_network }}"}'
+        ovf: '{{ "/mnt/builds/" + controller_version + "/" + build_name + "/controller.ova" }}'
+        validate_certs: "no"
+        folder: '{{ cloud_parameters.datacenter + "/vm/" + cloud_parameters.controller_folder }}'
+        properties: '{ u"avi.mgmt-ip.CONTROLLER":u"{{ controller_ip }}", u"avi.mgmt-mask.CONTROLLER":u"{{ controller_mask }}", u"avi.default-gw.CONTROLLER":u"{{ controller_gw }}"}'
+        power_on: "yes"
+        allow_duplicates: "no"
+
+    - name: "Wait for Controller to be up..."
+      uri:
+        url: '{{ "https://" + controller_ip + "/api/cluster/runtime" }}'
+        return_content: "yes"
+        validate_certs: "no"
+      delegate_to: "localhost"
+      register: result
+      until: "result.content.find('CLUSTER_UP') != -1"
+      retries: 20
+      delay: 30
+
+- import_playbook: bootstrap.yml
+- import_playbook: configure_sslcerts.yml
+- import_playbook: configure_cloud.yml
+- import_playbook: configure_dns.yml
+- import_playbook: create_persistence.yml
+- import_playbook: create_vs.yml

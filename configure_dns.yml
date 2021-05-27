@@ -1,0 +1,74 @@
+---
+- hosts: "localhost"
+  connection: "local"
+  roles:
+    - role: "avinetworks.avisdk"
+  vars_files:
+    - "generic.yml"
+
+  tasks:
+    - name: "Create DNS VSVip"
+      avi_vsvip:
+        avi_credentials: "{{ avi_credentials | default(omit)}}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        name: '{{ "vsvip-" + dns_config.dns_vs_name + "-" + cloud_parameters.name }}'
+        cloud_ref: '{{ "/api/cloud/?name=" + cloud_parameters.name }}'
+        vip:
+          - enabled: true
+            auto_allocate_ip: false
+            ip_address:
+              addr: "{{ dns_config.dns_vip }}"
+              type: "V4"
+            vip_id: "1"
+#        dns_info:
+#          - fqdn: "{{ dns_config.dns_vs_name }}"
+      register: vsvip
+
+    - name: "Create DNS Application Profile"
+      avi_applicationprofile:
+        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        name: Avi-DNS-Profile
+        dns_service_profile:
+          aaaa_empty_response: true
+          admin_email: hostmaster
+          dns_over_tcp_enabled: true
+          ecs_stripping_enabled: true
+          edns: true
+          edns_client_subnet_prefix_len: 24
+          error_response: DNS_ERROR_RESPONSE_NONE
+          negative_caching_ttl: 30
+          num_dns_ip: 1
+          ttl: 30
+        type: APPLICATION_PROFILE_TYPE_DNS
+      register: appprofile
+
+    - name: "Create Virtual Service"
+      avi_virtualservice:
+        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        name: "{{ dns_config.dns_vs_name }}"
+        vsvip_ref: "{{ vsvip.obj.url }}"
+        cloud_ref: '{{ "/api/cloud/?name=" + cloud_parameters.name }}'
+        application_profile_ref: "{{ appprofile.obj.url }}"
+        services:
+          - enable_ssl: false
+            port: 53
+          - enable_ssl: false
+            override_network_profile_ref: "/api/networkprofile/?name=System-TCP-Proxy"
+            port: 53
+        network_profile_ref: "/api/networkprofile/?name=System-UDP-Per-Pkt"
+        enabled: true
+        se_group_ref: "/api/serviceenginegroup/?name=GSLB-Group"
+      register: dnsvs
+
+    - name: "Set System DNS VS Configuration"
+      avi_api_session:
+        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        http_method: "patch"
+        path: "systemconfiguration"
+        data:
+          replace:
+            dns_virtualservice_refs:
+              - "{{ dnsvs.obj.url }}"

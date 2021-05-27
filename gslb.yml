@@ -1,0 +1,42 @@
+# avi_admin_password: "xxxxxxxxxxx"
+
+cloud_parameters:
+  name: "Default-Cloud"
+
+gslb_controllers:
+  - avi_credentials:
+      controller: "10.206.112.60"
+      username: "admin"
+      password: "{{ avi_admin_password }}"
+      api_version: "20.1.2"
+    domain_name: "vs.rc.demo.avi.local"
+    cluster_uuid: "cluster-b1e3e240-29d4-471f-86c6-fb0e8fee7e8c"
+    site_name: "London"
+  - avi_credentials:
+      controller: "10.206.112.64"
+      username: "admin"
+      password: "{{ avi_admin_password }}"
+      api_version: "20.1.2"
+    domain_name: "vs2.rc.demo.avi.local"
+    cluster_uuid: "cluster-cea91474-3faa-432d-a548-121b8675a454"
+    site_name: "Amsterdam"
+
+vs_parameters:
+  name: "rc-ansible-glsb-demo"
+  ipam_network_subnet:
+    subnet:
+      ip_addr:
+        type: "V4"
+        addr: "100.64.66.0"
+      mask: 24
+  pool_members:
+    - ip:
+        addr: "100.64.67.71"
+        type: "V4"
+    - ip:
+        addr: "100.64.67.72"
+        type: "V4"
+
+gslb_parameters:
+  name: "rc-ansible-gslb-demo"
+  fqdn: "rc-ansible-gslb-demo.gslb.rc.demo.avi.local"

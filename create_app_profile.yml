@@ -1,0 +1,65 @@
+---
+- hosts: "localhost"
+  connection: "local"
+  roles:
+    - role: "avinetworks.avisdk"
+  vars_files:
+    - "generic.yml"
+  tasks:
+    - name: "Create app profile"
+      avi_applicationprofile:
+        avi_credentials: "{{ avi_credentials | default(omit)}}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        http_profile:
+          allow_dots_in_header_name: false
+          client_body_timeout: 30000
+          client_header_timeout: 10000
+          client_max_body_size: 0
+          client_max_header_size: 12
+          client_max_request_size: 48
+          connection_multiplexing_enabled: true
+          disable_keepalive_posts_msie6: true
+          disable_sni_hostname_check: false
+          enable_chunk_merge: true
+          enable_fire_and_forget: false
+          enable_request_body_buffering: false
+          enable_request_body_metrics: false
+          fwd_close_hdr_for_bound_connections: true
+          hsts_enabled: false
+          hsts_max_age: 365
+          hsts_subdomains_enabled: true
+          http2_enabled: false
+          http_to_https: false
+          httponly_enabled: false
+          keepalive_header: false
+          keepalive_timeout: 30000
+          max_bad_rps_cip: 0
+          max_bad_rps_cip_uri: 0
+          max_bad_rps_uri: 0
+          max_http2_concurrent_streams_per_connection: 128
+          max_http2_control_frames_per_connection: 1000
+          max_http2_empty_data_frames_per_connection: 1000
+          max_http2_queued_frames_to_client_per_connection: 1000
+          max_keepalive_requests: 100
+          max_response_headers_size: 48
+          max_rps_cip: 0
+          max_rps_cip_uri: 0
+          max_rps_unknown_cip: 0
+          max_rps_unknown_uri: 0
+          max_rps_uri: 0
+          pki_profile_ref: /api/pkiprofile/?name=Client-Auth-PKI-Profile
+          post_accept_timeout: 30000
+          reset_conn_http_on_ssl_port: false
+          respond_with_100_continue: true
+          secure_cookie_enabled: false
+          server_side_redirect_to_https: false
+          ssl_client_certificate_mode: SSL_CLIENT_CERTIFICATE_REQUIRE
+          use_app_keepalive_timeout: false
+          websockets_enabled: true
+          x_forwarded_proto_enabled: false
+          xff_alternate_name: X-Forwarded-For
+          xff_enabled: true
+        name: test
+        preserve_client_ip: false
+        preserve_client_port: false
+        type: APPLICATION_PROFILE_TYPE_HTTP

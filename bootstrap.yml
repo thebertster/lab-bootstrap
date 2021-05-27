@@ -1,0 +1,98 @@
+---
+- hosts: "localhost"
+  connection: "local"
+  roles:
+    - role: "avinetworks.avisdk"
+  vars_files:
+    - "generic.yml"
+
+  tasks:
+    - name: "Check for Initial Setup"
+      uri:
+        url: '{{"https://" + avi_credentials.controller + "/api/initial-data?include-name"}}'
+        method: "get"
+        status_code: 200
+        timeout: 10
+        validate_certs: "no"
+      register: avi_initial_data
+
+    - name: "Bootstrap Controller"
+      avi_api_session:
+        avi_credentials:
+          controller: "{{ avi_credentials.controller }}"
+          username: "admin"
+          password: "{{ avi_default_password }}"
+          api_version: "{{ avi_credentials.api_version }}"
+        http_method: "put"
+        path: '{{ "useraccount" }}'
+        data:
+          old_password: "{{ avi_default_password }}"
+          password: "{{ avi_admin_password }}"
+      when: avi_initial_data.json.user_initial_setup
+    # - name: "Bootstrap Controller"
+    #   avi_bootstrap_controller:
+    #     avi_credentials:
+    #       controller: "{{ avi_credentials.controller }}"
+    #       username: "admin"
+    #       password: "{{ avi_default_password }}"
+    #       api_version: "{{ avi_credentials.api_version }}"
+    #     password: "{{ avi_admin_password }}"
+    #     con_wait_time: 3600
+    #     round_wait: 10
+    #     ssh_key_pair: ''
+
+    - name: "Configure LDAP Auth"
+      avi_authprofile:
+        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        ldap:
+          base_dn: "{{ ldap_parameters.base_dn }}"
+          bind_as_administrator: true
+          email_attribute: "email"
+          full_name_attribute: "name"
+          port: 636
+          security_mode: "AUTH_LDAP_SECURE_USE_LDAPS"
+          server: "{{ ldap_parameters.servers }}"
+          settings:
+            admin_bind_dn: "{{ ldap_parameters.admin_bind_dn }}"
+            group_filter: "(objectClass=group)"
+            group_member_attribute: "member"
+            group_member_is_full_dn: true
+            group_search_dn: "{{ ldap_parameters.group_search_dn }}"
+            group_search_scope: "AUTH_LDAP_SCOPE_SUBTREE"
+            ignore_referrals: true
+            password: "{{ ldap_parameters.password }}"
+            user_id_attribute: "sAMAccountName"
+            user_search_dn: "{{ ldap_parameters.user_search_dn }}"
+            user_search_scope: "AUTH_LDAP_SCOPE_SUBTREE"
+        name: "{{ ldap_parameters.profile_name }}"
+        type: "AUTH_PROFILE_LDAP"
+      when: ldap_parameters is defined
+
+    - name: "Capture authentication parameters"
+      set_fact:
+        admin_auth_configuration:
+          auth_profile_ref: '{{ "/api/authprofile/?name=" + ldap_parameters.profile_name }}'
+          mapping_rules: "{{ ldap_parameters.mapping_rules | default(omit) }}"
+          allow_localuser_login: true
+      when: ldap_parameters is defined
+
+    - name: "Configure System"
+      avi_systemconfiguration:
+        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        dns_configuration: "{{ system_configuration.dns_configuration | default(omit)}}"
+        ntp_configuration: "{{ system_configuration.ntp_configuration | default(omit)}}"
+        global_tenant_config: "{{ system_configuration.global_tenant_config | default(omit)}}"
+        welcome_workflow_complete: true
+        admin_auth_configuration: "{{ admin_auth_configuration | default(omit) }}"
+
+    - name: "Configure backup passphrase"
+      avi_backupconfiguration:
+        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        name: "Backup-Configuration"
+        backup_passphrase: "{{ system_configuration.backup_passphrase | default(omit) }}"
+        save_local: true
+        maximum_backups_stored: 4
+

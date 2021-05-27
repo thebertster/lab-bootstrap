@@ -1,0 +1,68 @@
+---
+- hosts: "localhost"
+  connection: "local"
+  roles:
+    - role: "avinetworks.avisdk"
+  vars_files:
+    - "generic.yml"
+
+  tasks:
+    - name: "Create VSVip"
+      avi_vsvip:
+        avi_credentials: "{{ avi_credentials | default(omit)}}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        name: '{{ "vsvip-" + vs_parameters.name + "-" + cloud_parameters.name }}'
+        cloud_ref: '{{ "/api/cloud/?name=" + cloud_parameters.name }}'
+        vip:
+          - enabled: true
+            auto_allocate_ip: true
+            ipam_network_subnet: "{{ vs_parameters.ipam_network_subnet }}"
+            vip_id: "1"
+        dns_info:
+          - fqdn: "{{ vs_parameters.fqdn }}"
+      register: vsvip
+
+    - name: "Create Pool"
+      avi_pool:
+        avi_credentials: "{{ avi_credentials | default(omit)}}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        name: '{{ vs_parameters.name + "-pool" }}'
+        lb_algorithm: "LB_ALGORITHM_ROUND_ROBIN"
+        application_persistence_profile_ref: "/api/applicationpersistenceprofile/?name=Persist-PHPSESSID"
+        health_monitor_refs:
+          - "/api/healthmonitor/?name=System-HTTP"
+        servers: "{{ vs_parameters.pool_members }}"
+        cloud_ref: '{{ "/api/cloud/?name=" + cloud_parameters.name }}'
+      register: pool
+
+    - name: "Create Virtual Service"
+      avi_virtualservice:
+        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        name: "{{ vs_parameters.name }}"
+        vsvip_ref: "{{ vsvip.obj.url }}"
+        pool_ref: "{{ pool.obj.url }}"
+        cloud_ref: '{{ "/api/cloud/?name=" + cloud_parameters.name }}'
+        application_profile_ref: "/api/applicationprofile/?name=System-Secure-HTTP"
+        services:
+          - enable_ssl: false
+            port: 80
+          - enable_ssl: true
+            port: 443
+        enabled: true
+        enable_rhi: "{{ vs_parameters.rhi | default(omit) }}"
+        se_group_ref: "/api/serviceenginegroup/?name=Default-Group"
+        ssl_key_and_certificate_refs:
+          - "/api/sslkeyandcertificate/?name=Wildcard-ECDSA-Cert"
+          - "/api/sslkeyandcertificate/?name=Wildcard-RSA-Cert"
+        ssl_profile_ref: "/api/sslprofile/?name=System-Standard"
+        analytics_policy:
+          all_headers: true
+          client_insights: NO_INSIGHTS
+          full_client_logs:
+            duration: 0
+            enabled: true
+            throttle: 10
+          metrics_realtime_update:
+            enabled: false
+

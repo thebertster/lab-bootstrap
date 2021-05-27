@@ -1,0 +1,129 @@
+---
+- hosts: "localhost"
+  connection: "local"
+  roles:
+    - role: "avinetworks.avisdk"
+  vars_files:
+    - "generic.yml"
+
+  tasks:
+    - name: "Discover Service Engines"
+      avi_api_session:
+        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        http_method: "get"
+        path: '{{ "serviceengine/?cloud_ref.name=" + cloud_parameters.name }}'
+      register: serviceengines
+
+    - name: "Delete Service Engines"
+      avi_api_session:
+        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        http_method: "delete"
+        path: '{{"serviceengine/" + item.uuid }}'
+      loop: "{{ serviceengines.obj.results }}"
+
+    - name: "Revert cloud to No Access"
+      avi_cloud:
+        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        name: "{{ cloud_parameters.name }}"
+        vtype: CLOUD_NONE
+
+    - name: "Delete Avi IPAM Provider"
+      avi_ipamdnsproviderprofile:
+        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        name: '{{ "VMware-IPAM-" + cloud_parameters.name }}'
+        type: "IPAMDNS_TYPE_INTERNAL"
+        state: absent
+
+    - name: "Delete Avi DNS Provider"
+      avi_ipamdnsproviderprofile:
+        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        name: '{{ "VMware-DNS-" + cloud_parameters.name }}'
+        type: "IPAMDNS_TYPE_INTERNAL_DNS"
+        state: absent
+
+    - name: "Remove management default route"
+      avi_vrfcontext:
+        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        name: "management"
+        cloud_ref: '{{ "/api/cloud/?name=" + cloud_parameters.name }}'
+        static_routes: []
+
+    - name: "Discover remaining configured networks"
+      avi_api_session:
+        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        http_method: "get"
+        path: '{{ "network/?cloud_ref.name=" + cloud_parameters.name }}'
+      register: networks
+
+    - name: "Delete configured networks"
+      avi_api_session:
+        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        http_method: "delete"
+        path: '{{"network/" + item.uuid }}'
+      loop: "{{ networks.obj.results }}"
+
+    - name: "Revert default SE Group"
+      avi_serviceenginegroup:
+        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        name: "Default-Group"
+        cloud_ref: '{{ "/api/cloud/?name=" + cloud_parameters.name }}'
+        active_standby: false
+        aggressive_failure_detection: false
+        algo: "PLACEMENT_ALGO_PACKED"
+        auto_rebalance: false
+        auto_redistribute_active_standby_load: false
+        buffer_se: 1
+        cpu_reserve: false
+        cpu_socket_affinity: false
+        dedicated_dispatcher_core: false
+        disk_per_se: 10
+        distribute_load_active_standby: false
+        ha_mode: "HA_MODE_SHARED"
+        hm_on_standby: true
+        license_tier: "ENTERPRISE_18"
+        license_type: "LIC_CORES"
+        max_scaleout_per_vs: 4
+        max_se: 10
+        max_vs_per_se: 10
+        memory_per_se: 2048
+        min_scaleout_per_vs: 1
+        min_se: 1
+        per_app: false
+        placement_mode: "PLACEMENT_MODE_AUTO"
+        se_bandwidth_type: "SE_BANDWIDTH_UNLIMITED"
+        se_deprovision_delay: 120
+        se_name_prefix: "Avi"
+        vcenter_datastore_mode: "VCENTER_DATASTORE_ANY"
+        vcenter_datastores_include: false
+        vcenter_folder: "AviSeFolder"
+        vcpus_per_se: 1
+      when: item.name == "Default-Group"
+      loop: "{{ seg_config }}"
+
+    - name: "Delete non-default SE Groups"
+      avi_serviceenginegroup:
+        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        name: "{{ item.name }}"
+        cloud_ref: '{{ "/api/cloud/?name=" + cloud_parameters.name }}'
+        state: absent
+      when: item.name != "Default-Group"
+      loop: "{{ seg_config }}"
+
+    - name: "Delete cloud"
+      avi_cloud:
+        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        name: "{{ cloud_parameters.name }}"
+        vtype: "CLOUD_NONE"
+        state: absent
+      when: cloud_parameters.name != "Default-Cloud"

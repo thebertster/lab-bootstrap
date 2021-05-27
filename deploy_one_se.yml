@@ -1,0 +1,127 @@
+---
+- name: '{{ "Generate token for SE: " + se_item.name }}'
+  avi_api_session:
+    avi_credentials: "{{ avi_credentials | default(omit) }}"
+    api_context: "{{ avi_api_context | default(omit) }}"
+    http_method: "get"
+    path: "securetoken-generate"
+    params:
+      cloud_uuid: "{{ cloud_uuid }}"
+  register: secure_token
+  delegate_to: "localhost"
+
+- name: '{{ "Deploy SE VM: " + se_item.name }}'
+  community.vmware.vmware_deploy_ovf:
+    hostname: "{{ cloud_parameters.vcenter }}"
+    username: "{{ cloud_parameters.username }}"
+    password: "{{ cloud_parameters.password }}"
+    datacenter: "{{ cloud_parameters.datacenter }}"
+    cluster: "{{ cloud_parameters.cluster }}"
+    datastore: "{{ cloud_parameters.datastore }}"
+    name: "{{ se_item.name }}"
+    networks: '{u"Management":u"{{ se_mgmt_pg }}",
+                u"Data Network 1":u"{{ se_item.data_nics1.pg_name | default(avi_internal_pg, true) }}",
+                u"Data Network 2":u"{{ se_item.data_nics2.pg_name | default(avi_internal_pg, true) }}",
+                u"Data Network 3":u"{{ se_item.data_nics3.pg_name | default(avi_internal_pg, true) }}",
+                u"Data Network 4":u"{{ se_item.data_nics4.pg_name | default(avi_internal_pg, true) }}",
+                u"Data Network 5":u"{{ se_item.data_nics5.pg_name | default(avi_internal_pg, true) }}",
+                u"Data Network 6":u"{{ se_item.data_nics6.pg_name | default(avi_internal_pg, true) }}",
+                u"Data Network 7":u"{{ se_item.data_nics7.pg_name | default(avi_internal_pg, true) }}",
+                u"Data Network 8":u"{{ se_item.data_nics8.pg_name | default(avi_internal_pg, true) }}",
+                u"Data Network 9":u"{{ se_item.data_nics9.pg_name | default(avi_internal_pg, true) }}"}'
+    ovf: "./se.ova"
+    validate_certs: "no"
+    folder: '{{ cloud_parameters.datacenter + "/vm/" + cloud_parameters.no_access_folder }}'
+    properties: '{u"AVICNTRL_CLUSTERUUID":u"{{ cluster_uuid }}",
+                  u"AVICNTRL_AUTHTOKEN":u"{{ secure_token.obj.auth_token }}",
+                  u"avi.default-gw.SE":u"{{ se_gw }}",
+                  u"avi.DNS.SE":u"{{ se_dns }}",
+                  u"AVISETYPE":u"{{ avi_se_type }}",
+                  u"avi.mgmt-ip.SE":u"{{ se_item.ip }}",
+                  u"avi.mgmt-mask.SE":u"{{ se_mask }}",
+                  u"AVICNTRL": u"{{ secure_token.obj.leader_ip }}"}'
+    power_on: "yes"
+    allow_duplicates: "no"
+  register: se_vm
+
+- name: '{{ "Wait for SE to connect to Controller: " + se_item.name }}'
+  avi_api_session:
+    avi_credentials: "{{ avi_credentials | default(omit) }}"
+    api_context: "{{ avi_api_context | default(omit) }}"
+    http_method: "get"
+    path: "serviceengine"
+    params:
+      name: "{{ se_item.ip }}"
+      cloud_uuid: "{{ cloud_uuid }}"
+  register: api_results
+  until: api_results.obj.count == 1 and api_results.obj.results[0].se_connected == true
+  retries: 30
+  delay: 5
+  delegate_to: "localhost"
+
+- set_fact:
+    se_vnics: "{{ api_results.obj.results[0].data_vnics }}"
+    vm_mac_addresses: {}
+    se_mac_addresses: {}
+    mac_mapping: {}
+    vnic_list: []
+
+- set_fact:
+    se_mac_addresses: "{{ se_mac_addresses | combine( { item.mac_address: item.linux_name } ) }}"
+  loop: "{{ se_vnics | flatten(levels=1) }}"
+
+- set_fact:
+    vm_mac_addresses: "{{ vm_mac_addresses | combine( { item.value.macaddress: item.key.replace('hw_eth','data_nics')} ) }}"
+  when: "'hw_eth' in item.key and item.key != 'hw_eth0'"
+  loop: "{{ se_vm.instance | dict2items }}"
+
+- name: '{{ "Mapping out SE interfaces:" + se_item.name }}'
+  set_fact:
+    mac_mapping: "{{ mac_mapping | combine( { se_mac_addresses[item.key]: item.value } ) }}"
+  loop: "{{ vm_mac_addresses | dict2items }}"
+
+- name: '{{ "Preparing SE interfaces with static IPs: " + se_item.name }}'
+  set_fact:
+      vnic_list: "{{ vnic_list + [ item|combine({'vnic_networks':[{'ip':{'mask': se_item[mac_mapping[item.linux_name]]['mask'],'ip_addr': {'type': 'V4', 'addr': se_item[mac_mapping[item.linux_name]]['ip']}},'ctlr_alloc': False,'mode': 'STATIC'}]})] }}"
+  loop: "{{ se_vnics | flatten(levels=1) }}"
+  when: "item.linux_name in mac_mapping
+        and
+        se_item[mac_mapping[item.linux_name]]['pg_name'] is defined
+        and
+        se_item[mac_mapping[item.linux_name]]['pg_name'] != None
+        and
+        se_item[mac_mapping[item.linux_name]]['ip'] is defined
+        and
+        se_item[mac_mapping[item.linux_name]]['ip'] != None
+        and
+        se_item[mac_mapping[item.linux_name]]['mask'] is defined
+        and
+        se_item[mac_mapping[item.linux_name]]['mask'] != None"
+
+- name: '{{ "Preparing SE interfaces with dynamic IPs: " + se_item.name }}'
+  set_fact:
+      vnic_list: "{{ vnic_list + [ item | combine({'dhcp_enabled': True}) ] }}"
+  vars:
+      new_item: "{ 'dhcp_enabled': 'true' }"
+  loop: "{{ se_vnics | flatten(levels=1) }}"
+  when: "item.linux_name in mac_mapping
+        and
+        se_item[mac_mapping[item.linux_name]]['pg_name'] is defined
+        and
+        se_item[mac_mapping[item.linux_name]]['pg_name'] != None
+        and
+        (se_item[mac_mapping[item.linux_name]]['ip'] is undefined
+        or
+        se_item[mac_mapping[item.linux_name]]['ip'] == None)"
+
+- name: '{{ "Configure data NIC IP addresses: " + se_item.name }}'
+  avi_serviceengine:
+    avi_credentials: "{{ avi_credentials | default(omit) }}"
+    api_context: "{{ avi_api_context | default(omit) }}"
+    avi_api_update_method: patch
+    avi_api_patch_op: replace
+    name: "{{ se_item.ip }}"
+    cloud_ref: '{{ "/api/cloud/?name=" + cloud_name }}'
+    data_vnics: "{{ vnic_list }}"
+    se_group_ref: "{{ segroup_url }}"
+  delegate_to: "localhost"

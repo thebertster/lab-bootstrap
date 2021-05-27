@@ -1,0 +1,35 @@
+---
+- hosts: "localhost"
+  connection: "local"
+  roles:
+    - role: "avinetworks.avisdk"
+  vars_files:
+    - "gslb.yml"
+
+  tasks:
+    - name: "Delete GSLB Service"
+      avi_gslbservice:
+        avi_credentials: "{{ gslb_controllers[0].avi_credentials | default(omit) }}"
+        name: "{{ gslb_parameters.name }}"
+        state: "absent"
+
+    - name: "Delete Virtual Services"
+      avi_virtualservice:
+        avi_credentials: "{{ item.avi_credentials | default(omit) }}"
+        name: "{{ vs_parameters.name }}"
+        state: "absent"
+      loop: "{{ gslb_controllers }}"
+
+    - name: "Delete Pools"
+      avi_pool:
+        avi_credentials: "{{ item.avi_credentials | default(omit)}}"
+        name: '{{ vs_parameters.name + "-pool"}}'
+        state: "absent"
+      loop: "{{ gslb_controllers }}"
+
+    - name: "Delete VSVips"
+      avi_vsvip:
+        avi_credentials: "{{ item.avi_credentials | default(omit)}}"
+        name: '{{ "vsvip-" + vs_parameters.name + "-vip"}}'
+        state: "absent"
+      loop: "{{ gslb_controllers }}"

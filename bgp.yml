@@ -1,0 +1,40 @@
+---
+- hosts: "localhost"
+  connection: "local"
+  roles:
+    - role: "avinetworks.avisdk"
+  vars_files:
+    - "generic.yml"
+
+  tasks:
+    - name: "Configure BGP"
+      avi_vrfcontext:
+        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        name: "global"
+        bgp_profile:
+          hold_time: 180
+          ibgp: false
+          keepalive_interval: 60
+          local_as: 67002
+          peers:
+          - advertise_snat_ip: true
+            advertise_vip: true
+            advertisement_interval: 5
+            bfd: true
+            connect_timer: 10
+            ebgp_multihop: 0
+            md5_secret: ''
+            network_ref: "/api/network/?name=vxw-dvs-34-virtualwire-62-sid-6120061-wdc-06-vc12-avi-dev058"
+            peer_ip:
+              addr: "100.64.66.254"
+              type: "V4"
+            remote_as: 67001
+            shutdown: false
+            subnet:
+              ip_addr:
+                addr: "100.64.66.0"
+                type: "V4"
+              mask: 24
+          send_community: true
+          shutdown: false
