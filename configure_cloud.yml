@@ -30,7 +30,7 @@
       when: create_dns_provider
 
     - name: "Configure vSphere Cloud"
-      avi_api_session:
+      avi_cloud:
         avi_credentials: "{{ avi_credentials | default(omit) }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         name: "{{ cloud_parameters.name }}"
@@ -59,7 +59,7 @@
       delay: 5
 
     - name: "Configure cloud management network"
-      avi_cloud:
+      avi_api_session:
         avi_credentials: "{{ avi_credentials | default(omit) }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         http_method: "patch"
