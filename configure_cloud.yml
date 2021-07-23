@@ -59,16 +59,16 @@
       delay: 5
 
     - name: "Configure cloud management network"
-      avi_api_session:
+      avi_cloud:
         avi_credentials: "{{ avi_credentials | default(omit) }}"
         api_context: "{{ avi_api_context | default(omit) }}"
-        http_method: "patch"
-        path: '{{ "cloud/" + cloud.obj.uuid }}'
-        data:
-          replace:
-            vcenter_configuration:
-              management_ip_subnet: "{{ cloud_parameters.management_ip_subnet }}"
-              management_network: '{{ "/api/vimgrnwruntime/?name=" + cloud_parameters.management_network }}'
+        avi_api_update_method: "patch"
+        avi_api_patch_op: "replace"
+        name:  "{{ cloud_parameters.name }}"
+        vcenter_configuration:
+          management_ip_subnet: "{{ cloud_parameters.management_ip_subnet }}"
+          management_network: '{{ "/api/vimgrnwruntime/?name=" + cloud_parameters.management_network }}'
+        vtype: "CLOUD_VCENTER"
 
     - name: "Configure management default route"
       avi_vrfcontext:
