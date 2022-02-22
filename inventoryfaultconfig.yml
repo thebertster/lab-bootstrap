@@ -1,0 +1,15 @@
+---
+- hosts: "localhost"
+  connection: "local"
+  vars_files:
+    - "generic.yml"
+
+  tasks:
+    - name: "Set Inventory Fault Config"
+      vmware.alb.avi_inventoryfaultconfig:
+        avi_credentials: "{{ avi_credentials | default(omit)}}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        controller_faults:
+          deprecated_api_version_faults: True
+        url: https://localhost/api/inventoryfaultconfig/
+        name: System-InventoryFaultConfig

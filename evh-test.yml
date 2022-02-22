@@ -1,0 +1,40 @@
+---
+- hosts: "localhost"
+  connection: "local"
+  roles:
+    - role: "avinetworks.avisdk"
+  vars_files:
+    - "generic.yml"
+
+  tasks:
+    - name: "Create Pool"
+      avi_pool:
+        avi_credentials: "{{ avi_credentials | default(omit)}}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        name: "evh-test-pool"
+        lb_algorithm: "LB_ALGORITHM_ROUND_ROBIN"
+        application_persistence_profile_ref: "/api/applicationpersistenceprofile/?name=Persist-PHPSESSID"
+        health_monitor_refs:
+          - "/api/healthmonitor/?name=System-HTTP"
+        servers: "{{ vs_parameters.pool_members }}"
+        cloud_ref: '{{ "/api/cloud/?name=" + cloud_parameters.name }}'
+      register: pool
+    - avi_virtualservice:
+        avi_credentials: "{{ avi_credentials | default(omit)}}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        application_profile_ref: "/api/applicationprofile/?name=System-HTTP"
+        cloud_ref: '{{ "/api/cloud/?name=" + cloud_parameters.name }}'
+        enabled: true
+        name: "evh-test"
+        network_profile_ref: "/api/networkprofile/?name=System-TCP-Proxy"
+        pool_ref: "{{ pool.obj.url }}"
+        type: "VS_TYPE_VH_CHILD"
+        vh_matches:
+          - host: "www.acme.com"
+            path:
+              - match_case: INSENSITIVE
+                match_criteria: BEGINS_WITH
+                match_str:
+                  - "/"
+        vh_parent_vs_uuid: "{{ vs_parameters.parent_uuid }}"
+        vh_type: "VS_TYPE_VH_ENHANCED"

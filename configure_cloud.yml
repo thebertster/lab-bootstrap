@@ -1,8 +1,6 @@
 ---
 - hosts: "localhost"
   connection: "local"
-  roles:
-    - role: "avinetworks.avisdk"
   vars_files:
     - "generic.yml"
   vars:

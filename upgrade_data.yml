@@ -1,8 +1,8 @@
-upgrade_version: "20.1.6"
+upgrade_version: "21.1.3"
 upgrade_build: "last-built"
-#controller_patch_version: "20.1.5-2p1"
+#controller_patch_version: "21.1.2-2p3"
 #controller_patch_build: "last-good"
-#se_patch_version: "20.1.5-2p1"
+#se_patch_version: "21.1.2-2p3"
 #se_patch_build: "last-good"
 upgrade_options:
   system: true

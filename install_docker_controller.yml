@@ -31,12 +31,12 @@
 
     - name: "Wait for Controller to be up..."
       uri:
-        url: '{{ "https://" + ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0]) + "/" }}'
+        url: '{{ "https://" + ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0]) + "/api/cluster/runtime" }}'
         return_content: "yes"
         validate_certs: "no"
       delegate_to: "localhost"
       register: result
-      until: "result.content.find('Avi Vantage Controller') != -1"
+      until: "result.content.find('CLUSTER_UP') != -1"
       retries: 20
       delay: 30
 

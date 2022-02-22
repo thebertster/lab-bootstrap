@@ -86,6 +86,7 @@
         global_tenant_config: "{{ system_configuration.global_tenant_config | default(omit)}}"
         welcome_workflow_complete: true
         admin_auth_configuration: "{{ admin_auth_configuration | default(omit) }}"
+        enable_cors: true
 
     - name: "Configure backup passphrase"
       avi_backupconfiguration:

@@ -1,3 +1,4 @@
+
 system_configuration:
   dns_configuration:
     search_domain: "rc.demo.avi.local"
@@ -49,6 +50,9 @@ vs_parameters:
         type: "V4"
     - ip:
         addr: "100.64.67.72"
+        type: "V4"
+    - ip:
+        addr: "100.64.67.73"
         type: "V4"
 
 ldap_parameters:
