@@ -1,5 +1,6 @@
 avi_admin_password: "xxxxxxxxxxx"
 avi_default_password: "xxxxxxxxxxx"
+vcenter_password: "xxxxxxxxxx"
 ldapbind_password: "{{ avi_admin_password }}"
 
 avi_credentials:

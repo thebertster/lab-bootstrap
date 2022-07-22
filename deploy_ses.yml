@@ -2,8 +2,8 @@
 - hosts: all
   vars_files:
     - "generic.yml"
-  roles:
-    - role: "avinetworks.avisdk"
+  collections:
+    - vmware.alb
   tasks:
     - name: "Set some facts"
       set_fact:

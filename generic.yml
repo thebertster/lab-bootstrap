@@ -20,7 +20,7 @@ cloud_parameters:
   name: '{{ cloud_name | default("Default-Cloud") }}'
   vcenter: "wdc-06-vc12.oc.vmware.com"
   username: "aviuser6"
-  password: "AviUser1234!."
+  password: "{{ vcenter_password }}"
   datacenter: "wdc-06-vc12"
   datastore: "wdc-06-vc12c01-vsan"
   cluster: "wdc-06-vc12c01"

@@ -1,0 +1,3 @@
+---
+- import_playbook: delete_virtual_services.yml
+- import_playbook: unconfigure_cloud.yml

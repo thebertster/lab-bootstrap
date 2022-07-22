@@ -38,6 +38,8 @@
           username: "{{ cloud_parameters.username }}"
           password: "{{ cloud_parameters.password }}"
           vcenter_url: "{{ cloud_parameters.vcenter }}"
+          use_content_lib: "{{ cloud_config.use_content_lib | default(omit) }}"
+          content_lib: "{{ cloud_config.content_lib | default(omit) }}"
         vtype: "CLOUD_VCENTER"
         ipam_provider_ref: "{{ ipamprovider.obj.url }}"
         dns_provider_ref: '{{ "/api/ipamdnsproviderprofile/?name=VMware-DNS-" + cloud_parameters.name if create_dns_provider else None }}'

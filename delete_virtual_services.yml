@@ -1,0 +1,43 @@
+---
+- hosts: "localhost"
+  connection: "local"
+  collections:
+    - vmware.alb
+  vars_files:
+    - "generic.yml"
+  tasks:
+  - name: "Enumerate Virtual Services"
+    set_fact:
+      virtual_services: '{{ lookup("vmware.alb.avi", avi_credentials=avi_credentials, obj_type="virtualservice", params="fields=name", wantlist=true) }}'
+
+  - name: "Enumerate VsVips"
+    set_fact:
+      vs_vips: '{{ lookup("vmware.alb.avi", avi_credentials=avi_credentials, obj_type="vsvip", params="fields=name", wantlist=true) }}'
+
+  - name: "Enumerate Pools"
+    set_fact:
+      pools: '{{ lookup("vmware.alb.avi", avi_credentials=avi_credentials, obj_type="pool", params="fields=name", wantlist=true) }}'
+
+  - name: "Delete Virtual Services"
+    avi_virtualservice:
+        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        name: "{{ item.name }}"
+        state: "absent"
+    loop: "{{ virtual_services }}"
+
+  - name: "Delete Pools"
+    avi_pool:
+        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        name: "{{ item.name }}"
+        state: "absent"
+    loop: "{{ pools }}"
+
+  - name: "Delete VsVips"
+    avi_vsvip:
+        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        name: "{{ item.name }}"
+        state: "absent"
+    loop: "{{ vs_vips }}"
