@@ -7,7 +7,13 @@ avi_credentials:
   controller: "xxxxx"
   username: "admin"
   password: "{{ avi_admin_password }}"
-  api_version: "20.1.4"
+  api_version: "22.1.2"
+
+cloud_config:
+  use_content_lib: true
+  content_lib:
+    name: "rc-contentlib"
+    id: "ce0a049b-d00c-4f75-8163-0a64062ae390"
 
 ipam_config:
   - name: "vxw-dvs-34-virtualwire-62-sid-6120061-wdc-06-vc12-avi-dev058"

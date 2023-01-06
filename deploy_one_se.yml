@@ -55,8 +55,8 @@
       cloud_uuid: "{{ cloud_uuid }}"
   register: api_results
   until: api_results.obj.count == 1 and api_results.obj.results[0].se_connected == true
-  retries: 30
-  delay: 5
+  retries: 50
+  delay: 8
   delegate_to: "localhost"
 
 - set_fact:

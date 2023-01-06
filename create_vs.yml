@@ -17,7 +17,7 @@
           - enabled: true
             auto_allocate_ip: true
             ipam_network_subnet: "{{ vs_parameters.ipam_network_subnet }}"
-            vip_id: "1"
+#            vip_id: "1"
         dns_info:
           - fqdn: "{{ vs_parameters.fqdn }}"
       register: vsvip

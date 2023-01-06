@@ -20,7 +20,7 @@
       avi_api_image:
         avi_credentials: "{{ avi_credentials | default(omit) }}"
         api_context: "{{ avi_api_context | default(omit) }}"
-        file_path: '{{ "/mnt/builds/" + upgrade_version + "/" + upgrade_build + "/controller.pkg" }}'
+        file_path: '{{ "/mnt/builds/" + upgrade_version + "/" + upgrade_build + "/controller" + ("_docker.tgz" if docker_controller is defined and docker_controller else ".pkg") }}'
       when:
         - upgrade_version is defined
         - upgrade_image.obj.count == 0

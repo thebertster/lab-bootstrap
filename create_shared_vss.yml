@@ -1,0 +1,27 @@
+---
+- hosts: "localhost"
+  connection: "local"
+  vars_files:
+    - "generic.yml"
+  collections:
+    - vmware.alb
+  tasks:
+    - name: "Create VSVip"
+      avi_vsvip:
+        avi_credentials: "{{ avi_credentials | default(omit)}}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        name: '{{ "vsvip-shared-test-" + cloud_parameters.name }}'
+        cloud_ref: '{{ "/api/cloud/?name=" + cloud_parameters.name }}'
+        vip:
+          - enabled: true
+            auto_allocate_ip: true
+            ipam_network_subnet: "{{ vs_parameters.ipam_network_subnet }}"
+            vip_id: "1"
+        dns_info:
+          - fqdn: "{{ vs_parameters.fqdn }}"
+      register: vsvip
+    - name: Create VSs
+      include_tasks: create_one_vs.yml
+      loop: "{{ range(80,100) }}"
+      loop_control:
+        loop_var: service_port

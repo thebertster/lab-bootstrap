@@ -34,9 +34,10 @@
       delay: 30
 
 - import_playbook: bootstrap.yml
-- import_playbook: configure_license.yml
-- import_playbook: configure_sslcerts.yml
-- import_playbook: configure_cloud.yml
-- import_playbook: configure_dns.yml
-- import_playbook: create_persistence.yml
-- import_playbook: create_vs.yml
+#- import_playbook: configure_license.yml
+#- import_playbook: configure_sslcerts.yml
+#- import_playbook: configure_portal_cert.yml
+#- import_playbook: configure_cloud.yml
+#- import_playbook: configure_dns.yml
+#- import_playbook: create_persistence.yml
+#- import_playbook: create_vs.yml
