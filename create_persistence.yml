@@ -1,13 +1,12 @@
 ---
-- hosts: "localhost"
+- name: "Create PHPSESSID Persistence Profile"
+  hosts: "localhost"
   connection: "local"
-  collections:
-    - vmware.alb
   vars_files:
     - "generic.yml"
   tasks:
     - name: "Create PHPSESSID Persistence Profile"
-      avi_applicationpersistenceprofile:
+      vmware.alb.avi_applicationpersistenceprofile:
         avi_credentials: "{{ avi_credentials | default(omit) }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         name: "Persist-PHPSESSID"

@@ -1,4 +1,5 @@
-
+# code: language=ansible
+---
 system_configuration:
   dns_configuration:
     search_domain: "rc.demo.avi.local"

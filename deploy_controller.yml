@@ -1,9 +1,11 @@
 ---
-- hosts: all
+- name: "Deploy Controller in vCenter"
+  hosts: all
   vars_files:
     - "deploy.yml"
     - "generic.yml"
-
+  vars:
+    build_path: '{{ "/mnt/" + (build_location | default("builds")) + "/" }}'
   tasks:
     - name: "Deploy Avi Controller"
       community.vmware.vmware_deploy_ovf:
@@ -11,11 +13,11 @@
         username: "{{ cloud_parameters.username }}"
         password: "{{ cloud_parameters.password }}"
         datacenter: "{{ cloud_parameters.datacenter }}"
-        cluster:  "{{ cloud_parameters.cluster }}"
+        cluster: "{{ cloud_parameters.cluster }}"
         datastore: "{{ cloud_parameters.datastore }}"
         name: "{{ controller_name }}"
-        networks:  '{u"Management":u"{{ cloud_parameters.controller_network }}"}'
-        ovf: '{{ "/mnt/builds/" + controller_version + "/" + build_name + "/controller.ova" }}'
+        networks: '{u"Management":u"{{ cloud_parameters.controller_network }}"}'
+        ovf: '{{ build_location + controller_version + "/" + build_name + "/controller.ova" }}'
         validate_certs: "no"
         folder: '{{ cloud_parameters.datacenter + "/vm/" + cloud_parameters.controller_folder }}'
         properties: '{ u"avi.mgmt-ip.CONTROLLER":u"{{ controller_ip }}", u"avi.mgmt-mask.CONTROLLER":u"{{ controller_mask }}", u"avi.default-gw.CONTROLLER":u"{{ controller_gw }}"}'
@@ -23,7 +25,7 @@
         allow_duplicates: "no"
 
     - name: "Wait for Controller to be up..."
-      uri:
+      ansible.builtin.uri:
         url: '{{ "https://" + controller_ip + "/api/cluster/runtime" }}'
         return_content: "yes"
         validate_certs: "no"
@@ -33,11 +35,26 @@
       retries: 20
       delay: 30
 
-- import_playbook: bootstrap.yml
-#- import_playbook: configure_license.yml
-#- import_playbook: configure_sslcerts.yml
-#- import_playbook: configure_portal_cert.yml
-#- import_playbook: configure_cloud.yml
-#- import_playbook: configure_dns.yml
-#- import_playbook: create_persistence.yml
-#- import_playbook: create_vs.yml
+- name: "Bootstrap"
+  ansible.builtin.import_playbook: bootstrap.yml
+
+- name: "Configure License"
+  ansible.builtin.import_playbook: configure_license.yml
+
+- name: "Configure SSL Certificates"
+  ansible.builtin.import_playbook: configure_sslcerts.yml
+
+- name: "Configure Portal Certificate"
+  ansible.builtin.import_playbook: configure_portal_cert.yml
+
+- name: "Configure vCenter Cloud"
+  ansible.builtin.import_playbook: configure_cloud.yml
+
+- name: "Configure DNS Service"
+  ansible.builtin.import_playbook: configure_dns.yml
+
+- name: "Create Persistence Profile"
+  ansible.builtin.import_playbook: create_persistence.yml
+
+- name: "Create Virtual Service"
+  ansible.builtin.import_playbook: create_vs.yml

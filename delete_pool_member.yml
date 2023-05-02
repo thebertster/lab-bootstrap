@@ -1,20 +1,19 @@
 ---
-- hosts: "localhost"
+- name: "Modify a Pool Member"
+  hosts: "localhost"
   connection: "local"
-  collections:
-    - vmware.alb
   vars_files:
     - "generic.yml"
   tasks:
-  - name: Update Pool State | Remove Server
-    avi_pool:
-      avi_credentials: "{{ avi_credentials | default(omit)}}"
-      api_context: "{{ avi_api_context | default(omit) }}"
-      name: rc-demo-pool
-      avi_api_update_method: patch
-      avi_api_patch_op: delete
-      lb_algorithm: "{{ lb_algorithm | default(omit) }}"
-      servers:
-        - ip:
-            addr: 100.64.67.73
-            type: V4
+    - name: Update Pool State | Remove Server
+      vmware.alb.avi_pool:
+        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        name: rc-demo-pool
+        avi_api_update_method: patch
+        avi_api_patch_op: delete
+        lb_algorithm: "{{ lb_algorithm | default(omit) }}"
+        servers:
+          - ip:
+              addr: 100.64.67.73
+              type: V4

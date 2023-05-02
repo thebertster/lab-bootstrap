@@ -1,17 +1,16 @@
 ---
-- hosts: "localhost"
+- name: "Install Enterprise-tier License"
+  hosts: "localhost"
   connection: "local"
-  collections:
-    - vmware.alb
   vars_files:
     - "license.yml"
 
   tasks:
     - name: "Install License"
-      avi_api_session:
-        avi_credentials: "{{ avi_credentials | default(omit)}}"
+      vmware.alb.avi_api_session:
+        avi_credentials: "{{ avi_credentials | default(omit) }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         http_method: "put"
         path: "license"
         data:
-          serial_key: "{{ license_key | default(omit)}}"
+          serial_key: "{{ license_key | default(omit) }}"

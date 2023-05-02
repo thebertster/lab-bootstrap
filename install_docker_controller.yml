@@ -2,6 +2,8 @@
 - hosts: all
   vars_files:
     - "deploy.yml"
+  vars:
+    build_path: '{{ "/mnt/" + (build_location | default("builds")) + "/" }}'
   tasks:
     - name: "Prepare environment..."
       tempfile:
@@ -13,7 +15,7 @@
     - name: '{{ "Extract docker installer for version " + controller_version }}'
       unarchive:
         remote_src: "yes"
-        src: '{{ "/mnt/builds/" + controller_version + "/" + build_name + "/docker_install.tar.gz" }}'
+        src: '{{ build_path + controller_version + "/" + build_name + "/docker_install.tar.gz" }}'
         dest: "{{ tmp_dir.path }}"
 
     - name: "Install Controller..."

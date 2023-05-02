@@ -1,15 +1,14 @@
 ---
-- hosts: "localhost"
+- name: "Configure DNS Services"
+  hosts: "localhost"
   connection: "local"
-  collections:
-    - vmware.alb
   vars_files:
     - "generic.yml"
 
   tasks:
     - name: "Create DNS VSVip"
-      avi_vsvip:
-        avi_credentials: "{{ avi_credentials | default(omit)}}"
+      vmware.alb.avi_vsvip:
+        avi_credentials: "{{ avi_credentials | default(omit) }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         name: '{{ "vsvip-" + dns_config.dns_vs_name + "-" + cloud_parameters.name }}'
         cloud_ref: '{{ "/api/cloud/?name=" + cloud_parameters.name }}'
@@ -25,7 +24,7 @@
       register: vsvip
 
     - name: "Create DNS Application Profile"
-      avi_applicationprofile:
+      vmware.alb.avi_applicationprofile:
         avi_credentials: "{{ avi_credentials | default(omit) }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         name: Avi-DNS-Profile
@@ -44,7 +43,7 @@
       register: appprofile
 
     - name: "Create Virtual Service"
-      avi_virtualservice:
+      vmware.alb.avi_virtualservice:
         avi_credentials: "{{ avi_credentials | default(omit) }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         name: "{{ dns_config.dns_vs_name }}"
@@ -63,7 +62,7 @@
       register: dnsvs
 
     - name: "Set System DNS VS Configuration"
-      avi_api_session:
+      vmware.alb.avi_api_session:
         avi_credentials: "{{ avi_credentials | default(omit) }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         http_method: "patch"

@@ -1,5 +1,6 @@
 ---
-- hosts: "localhost"
+- name: "Deploy vSphere Cloud"
+  hosts: "localhost"
   connection: "local"
   vars_files:
     - "generic.yml"
@@ -9,7 +10,7 @@
 
   tasks:
     - name: "Create Avi IPAM Provider"
-      avi_ipamdnsproviderprofile:
+      vmware.alb.avi_ipamdnsproviderprofile:
         avi_credentials: "{{ avi_credentials | default(omit) }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         name: '{{ "VMware-IPAM-" + cloud_parameters.name }}'
@@ -18,7 +19,7 @@
       register: ipamprovider
 
     - name: "Create Avi DNS Provider"
-      avi_ipamdnsproviderprofile:
+      vmware.alb.avi_ipamdnsproviderprofile:
         avi_credentials: "{{ avi_credentials | default(omit) }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         name: '{{ "VMware-DNS-" + cloud_parameters.name }}'
@@ -28,7 +29,7 @@
       when: create_dns_provider
 
     - name: "Configure vSphere Cloud"
-      avi_cloud:
+      vmware.alb.avi_cloud:
         avi_credentials: "{{ avi_credentials | default(omit) }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         name: "{{ cloud_parameters.name }}"
@@ -46,7 +47,7 @@
       register: cloud
 
     - name: "Wait for network sync for cloud to complete..."
-      avi_api_session:
+      vmware.alb.avi_api_session:
         avi_credentials: "{{ avi_credentials | default(omit) }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         http_method: "get"
@@ -59,19 +60,19 @@
       delay: 5
 
     - name: "Configure cloud management network"
-      avi_cloud:
+      vmware.alb.avi_cloud:
         avi_credentials: "{{ avi_credentials | default(omit) }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         avi_api_update_method: "patch"
         avi_api_patch_op: "replace"
-        name:  "{{ cloud_parameters.name }}"
+        name: "{{ cloud_parameters.name }}"
         vcenter_configuration:
           management_ip_subnet: "{{ cloud_parameters.management_ip_subnet }}"
           management_network: '{{ "/api/vimgrnwruntime/?name=" + cloud_parameters.management_network }}'
         vtype: "CLOUD_VCENTER"
 
     - name: "Configure management default route"
-      avi_vrfcontext:
+      vmware.alb.avi_vrfcontext:
         avi_credentials: "{{ avi_credentials | default(omit) }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         name: "management"
@@ -88,7 +89,7 @@
             route_id: "1"
 
     - name: "Configure networks"
-      avi_network:
+      vmware.alb.avi_network:
         avi_credentials: "{{ avi_credentials | default(omit) }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         name: "{{ item.name }}"
@@ -102,18 +103,18 @@
                 addr: "{{ item.addr }}"
                 type: "V4"
               mask: "{{ item.mask }}"
-            static_ip_ranges: "{{ item.static_ip_ranges | default(omit)}}"
-            static_ranges: "{{ item.static_ranges | default(omit)}}"
+            static_ip_ranges: "{{ item.static_ip_ranges | default(omit) }}"
+            static_ranges: "{{ item.static_ranges | default(omit) }}"
       loop: "{{ ipam_config }}"
 
     - name: "Collate usable subnets"
-      set_fact:
+      ansible.builtin.set_fact:
         usable_networks: '{{ usable_networks + [{"nw_ref": "/api/network/?name=" + item.name}] }}'
-      when: item.add_to_ipam == true
+      when: item.add_to_ipam
       loop: "{{ ipam_config }}"
 
     - name: "Add usable subnets to IPAM"
-      avi_api_session:
+      vmware.alb.avi_api_session:
         avi_credentials: "{{ avi_credentials | default(omit) }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         http_method: "patch"
@@ -124,10 +125,11 @@
               usable_networks: "{{ usable_networks }}"
 
     - name: "Configure SE Groups"
-      avi_serviceenginegroup:
+      vmware.alb.avi_serviceenginegroup:
         avi_credentials: "{{ avi_credentials | default(omit) }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         name: "{{ item.name }}"
+        cloud_ref: '{{ "/api/cloud/?name=" + cloud_parameters.name }}'
         vcenter_folder: '{{ item.vcenter_folder | default("Roberto/SEs") }}'
         se_name_prefix: '{{ item.se_name_prefix | default("rcse") }}'
         max_vs_per_se: "{{ item.max_vs_per_se | default(omit) }}"

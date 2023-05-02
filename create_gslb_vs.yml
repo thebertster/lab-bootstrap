@@ -1,8 +1,7 @@
 ---
-- hosts: "localhost"
+- name: "Create GSLB Virtual Sevrice"
+  hosts: "localhost"
   connection: "local"
-  collections:
-    - vmware.alb
   vars_files:
     - "gslb.yml"
   vars:
@@ -10,9 +9,10 @@
 
   tasks:
     - name: "Create VSVip"
-      avi_vsvip:
-        avi_credentials: "{{ item.avi_credentials | default(omit)}}"
-        name: '{{ "vsvip-" + vs_parameters.name + "-vip"}}'
+      vmware.alb.avi_vsvip:
+        avi_credentials: "{{ item.avi_credentials | default(omit) }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        name: '{{ "vsvip-" + vs_parameters.name + "-vip" }}'
         cloud_ref: '{{ "/api/cloud/?name=" + cloud_parameters.name }}'
         vip:
           - enabled: true
@@ -25,9 +25,10 @@
       loop: "{{ gslb_controllers }}"
 
     - name: "Create Pools"
-      avi_pool:
-        avi_credentials: "{{ item.avi_credentials | default(omit)}}"
-        name: '{{ vs_parameters.name + "-pool"}}'
+      vmware.alb.avi_pool:
+        avi_credentials: "{{ item.avi_credentials | default(omit) }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        name: '{{ vs_parameters.name + "-pool" }}'
         lb_algorithm: LB_ALGORITHM_ROUND_ROBIN
         servers: "{{ vs_parameters.pool_members }}"
         cloud_ref: '{{ "/api/cloud/?name=" + cloud_parameters.name }}'
@@ -35,8 +36,9 @@
       loop: "{{ gslb_controllers }}"
 
     - name: "Create Virtual Services"
-      avi_virtualservice:
+      vmware.alb.avi_virtualservice:
         avi_credentials: "{{ item.avi_credentials | default(omit) }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
         name: "{{ vs_parameters.name }}"
         vsvip_ref: "{{ vsvip.results[i].obj.url }}"
         pool_ref: "{{ pool.results[i].obj.url }}"
@@ -59,23 +61,24 @@
         index_var: i
 
     - name: "Build GSLB Pool Members"
-      set_fact:
-        gslb_pool_members: '{{ gslb_pool_members + [{"cluster_uuid": item.cluster_uuid, "vs_uuid": virtualservice.results[i].obj.uuid, "ip": vsvip.results[i].obj.vip[0].ip_address, "enabled": true}]}}'
+      ansible.builtin.set_fact:
+        gslb_pool_members: '{{ gslb_pool_members + [{"cluster_uuid": item.cluster_uuid, "vs_uuid": virtualservice.results[i].obj.uuid, "ip": vsvip.results[i].obj.vip[0].ip_address, "enabled": true}] }}'
       loop: "{{ gslb_controllers }}"
       loop_control:
         index_var: i
 
     - name: "Create GSLB Service"
-      avi_gslbservice:
+      vmware.alb.avi_gslbservice:
         avi_credentials: "{{ gslb_controllers[0].avi_credentials | default(omit) }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
         name: "{{ gslb_parameters.name }}"
         domain_names:
-        - "{{ gslb_parameters.fqdn }}"
+          - "{{ gslb_parameters.fqdn }}"
         controller_health_status_enabled: true
         health_monitor_refs:
-        - "/api/healthmonitor/?name=System-GSLB-HTTP"
+          - "/api/healthmonitor/?name=System-GSLB-HTTP"
         groups:
-        - algorithm: "GSLB_ALGORITHM_ROUND_ROBIN"
-          enabled: true
-          members: "{{ gslb_pool_members }}"
-          name: '{{ gslb_parameters.name + "-pool"}}'
+          - algorithm: "GSLB_ALGORITHM_ROUND_ROBIN"
+            enabled: true
+            members: "{{ gslb_pool_members }}"
+            name: '{{ gslb_parameters.name + "-pool" }}'

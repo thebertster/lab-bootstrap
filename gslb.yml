@@ -1,3 +1,5 @@
+# code: language=ansible
+---
 # avi_admin_password: "xxxxxxxxxxx"
 
 cloud_parameters:

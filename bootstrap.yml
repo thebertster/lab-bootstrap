@@ -1,15 +1,14 @@
 ---
-- hosts: "localhost"
+- name: "Initial bootstrap of Controller"
+  hosts: "localhost"
   connection: "local"
-  collections:
-    - vmware.alb
   vars_files:
     - "generic.yml"
 
   tasks:
     - name: "Check for Initial Setup"
-      uri:
-        url: '{{"https://" + avi_credentials.controller + "/api/initial-data?include-name"}}'
+      ansible.builtin.uri:
+        url: '{{  "https://" + avi_credentials.controller + "/api/initial-data?include-name" }}'
         method: "get"
         status_code: 200
         timeout: 10
@@ -17,7 +16,7 @@
       register: avi_initial_data
 
     - name: "Bootstrap Controller"
-      avi_api_session:
+      vmware.alb.avi_api_session:
         avi_credentials:
           controller: "{{ avi_credentials.controller }}"
           username: "admin"
@@ -30,7 +29,7 @@
           password: "{{ avi_admin_password }}"
       when: avi_initial_data.json.user_initial_setup
     # - name: "Bootstrap Controller"
-    #   avi_bootstrap_controller:
+    #   vmware.alb.avi_bootstrap_controller:
     #     avi_credentials:
     #       controller: "{{ avi_credentials.controller }}"
     #       username: "admin"
@@ -42,7 +41,7 @@
     #     ssh_key_pair: ''
 
     - name: "Configure LDAP Auth"
-      avi_authprofile:
+      vmware.alb.avi_authprofile:
         avi_credentials: "{{ avi_credentials | default(omit) }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         ldap:
@@ -70,7 +69,7 @@
       when: ldap_parameters is defined
 
     - name: "Capture authentication parameters (< 22.1.1)"
-      set_fact:
+      ansible.builtin.set_fact:
         admin_auth_configuration:
           auth_profile_ref: '{{ "/api/authprofile/?name=" + ldap_parameters.profile_name }}'
           mapping_rules: "{{ ldap_parameters.mapping_rules | default(omit) }}"
@@ -78,7 +77,7 @@
       when: ldap_parameters is defined and avi_credentials.api_version < "22.1.1"
 
     - name: "Configure LDAP Auth Mapping Profile (>=22.1.1)"
-      avi_authmappingprofile:
+      vmware.alb.avi_authmappingprofile:
         avi_credentials: "{{ avi_credentials | default(omit) }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         name: "{{ ldap_parameters.profile_name }}"
@@ -87,17 +86,17 @@
       when: ldap_parameters is defined and avi_credentials.api_version >= "22.1.1"
 
     - name: "Capture authentication parameters (>=22.1.1)"
-      set_fact:
+      ansible.builtin.set_fact:
         admin_auth_configuration:
           allow_localuser_login: true
           remote_auth_configurations:
-          - auth_profile_ref: '{{ "/api/authprofile/?name=" + ldap_parameters.profile_name }}'
-            auth_mapping_profile_ref: '{{ "/api/authmappingprofile/?name=" + ldap_parameters.profile_name }}'
-            index: 0
+            - auth_profile_ref: '{{ "/api/authprofile/?name=" + ldap_parameters.profile_name }}'
+              auth_mapping_profile_ref: '{{ "/api/authmappingprofile/?name=" + ldap_parameters.profile_name }}'
+              index: 0
       when: ldap_parameters is defined and avi_credentials.api_version >= "22.1.1"
 
     - name: "Configure System"
-      avi_systemconfiguration:
+      vmware.alb.avi_systemconfiguration:
         avi_credentials: "{{ avi_credentials | default(omit) }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         api_version: "{{ avi_credentials.api_version }}"
@@ -110,11 +109,10 @@
         enable_cors: true         
 
     - name: "Configure backup passphrase"
-      avi_backupconfiguration:
+      vmware.alb.avi_backupconfiguration:
         avi_credentials: "{{ avi_credentials | default(omit) }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         name: "Backup-Configuration"
         backup_passphrase: "{{ system_configuration.backup_passphrase | default(omit) }}"
         save_local: true
         maximum_backups_stored: 4
-

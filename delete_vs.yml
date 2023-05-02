@@ -18,12 +18,12 @@
       avi_pool:
         avi_credentials: "{{ avi_credentials | default(omit) }}"
         api_context: "{{ avi_api_context | default(omit) }}"
-        name: '{{ vs_parameters.name + "-pool"}'
+        name: '{{ vs_parameters.name + "-pool" }}'
         state: absent
 
     - name: "Delete VSVip"
       avi_vsvip:
         avi_credentials: "{{ avi_credentials | default(omit) }}"
         api_context: "{{ avi_api_context | default(omit) }}"
-        name: '{{ "vsvip-" + vs_parameters.name + "-vip"}'
+        name: '{{ "vsvip-" + vs_parameters.name + "-vip" }}'
         state: absent

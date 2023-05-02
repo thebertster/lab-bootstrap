@@ -1,11 +1,14 @@
-#upgrade_version: "21.1.6"
-#upgrade_build: "last-built"
-controller_patch_version: "21.1.4-2p6"
-controller_patch_build: "last-good"
-#se_patch_version: "22.1.2-2p2"
-#se_patch_build: "last-good"
+# code: language=ansible
+---
+# upgrade_version: "21.1.6"
+# upgrade_build: "last-released"
+build_location: "rel-builds"
+controller_patch_version: "22.1.3-2p3"
+controller_patch_build: "last-released"
+se_patch_version: "22.1.3-2p3"
+se_patch_build: "last-released"
 upgrade_options:
-  system: false
+  system: true
   disruptive: true
   skip_warnings: true
   suspend_on_failure: false

@@ -1,14 +1,13 @@
 ---
-- hosts: "localhost"
+- name: "Create Application Profile"
+  hosts: "localhost"
   connection: "local"
-  collections:
-    - vmware.alb
   vars_files:
     - "generic.yml"
   tasks:
-    - name: "Create app profile"
-      avi_applicationprofile:
-        avi_credentials: "{{ avi_credentials | default(omit)}}"
+    - name: "Create Application Profile"
+      vmware.alb.avi_applicationprofile:
+        avi_credentials: "{{ avi_credentials | default(omit) }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         http_profile:
           allow_dots_in_header_name: false

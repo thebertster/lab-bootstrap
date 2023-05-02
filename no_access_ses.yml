@@ -1,3 +1,5 @@
+# code: language=ansible
+---
 cloud_name: "VMware-No-Access"
 se_mask: "255.255.255.0"
 se_gw: "100.64.66.254"

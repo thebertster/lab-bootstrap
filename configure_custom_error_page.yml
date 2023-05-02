@@ -1,11 +1,12 @@
-- hosts: localhost
+---
+- name: "Configure Custom Error Page"
+  hosts: localhost
   connection: local
-  collections:
-    - vmware.alb
   tasks:
-    - name: Custom Error Page Body
-      avi_errorpagebody:
+    - name: "Custom Error Page Body"
+      vmware.alb.avi_errorpagebody:
         avi_credentials: "{{ avi_credentials }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
         state: present
         name: custom_avi_error_page
         error_page_body: |
@@ -54,16 +55,17 @@
 
           </html>
     - name: Custom Error Page Profile
-      avi_errorpageprofile:
+      vmware.alb.avi_errorpageprofile:
         avi_credentials: "{{ avi_credentials }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
         state: present
         name: custom_avi_error_page_profile
         error_pages:
-        - enable: true
-          error_page_body_ref: /api/errorpagebody/?name=custom_avi_error_page
-          index: 1
-          match:
-            match_criteria: IS_IN
-            ranges:
-            - begin: 400
-              end: 599
+          - enable: true
+            error_page_body_ref: /api/errorpagebody/?name=custom_avi_error_page
+            index: 1
+            match:
+              match_criteria: IS_IN
+              ranges:
+                - begin: 400
+                  end: 599

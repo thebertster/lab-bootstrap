@@ -1,6 +1,7 @@
+# code: language=ansible
 ---
 - name: '{{ "Generate token for SE: " + se_item.name }}'
-  avi_api_session:
+  vmware.alb.avi_api_session:
     avi_credentials: "{{ avi_credentials | default(omit) }}"
     api_context: "{{ avi_api_context | default(omit) }}"
     http_method: "get"
@@ -45,7 +46,7 @@
   register: se_vm
 
 - name: '{{ "Wait for SE to connect to Controller: " + se_item.name }}'
-  avi_api_session:
+  vmware.alb.avi_api_session:
     avi_credentials: "{{ avi_credentials | default(omit) }}"
     api_context: "{{ avi_api_context | default(omit) }}"
     http_method: "get"
@@ -59,30 +60,33 @@
   delay: 8
   delegate_to: "localhost"
 
-- set_fact:
+- name: "Set some facts"
+  ansible.builtin.set_fact:
     se_vnics: "{{ api_results.obj.results[0].data_vnics }}"
     vm_mac_addresses: {}
     se_mac_addresses: {}
     mac_mapping: {}
     vnic_list: []
 
-- set_fact:
+- name: "Enumerate SE vNICs"
+  ansible.builtin.set_fact:
     se_mac_addresses: "{{ se_mac_addresses | combine( { item.mac_address: item.linux_name } ) }}"
   loop: "{{ se_vnics | flatten(levels=1) }}"
 
-- set_fact:
+- name: "Enumerate VM vNICs"
+  ansible.builtin.set_fact:
     vm_mac_addresses: "{{ vm_mac_addresses | combine( { item.value.macaddress: item.key.replace('hw_eth','data_nics')} ) }}"
   when: "'hw_eth' in item.key and item.key != 'hw_eth0'"
   loop: "{{ se_vm.instance | dict2items }}"
 
 - name: '{{ "Mapping out SE interfaces:" + se_item.name }}'
-  set_fact:
+  ansible.builtin.set_fact:
     mac_mapping: "{{ mac_mapping | combine( { se_mac_addresses[item.key]: item.value } ) }}"
   loop: "{{ vm_mac_addresses | dict2items }}"
 
 - name: '{{ "Preparing SE interfaces with static IPs: " + se_item.name }}'
-  set_fact:
-      vnic_list: "{{ vnic_list + [ item|combine({'vnic_networks':[{'ip':{'mask': se_item[mac_mapping[item.linux_name]]['mask'],'ip_addr': {'type': 'V4', 'addr': se_item[mac_mapping[item.linux_name]]['ip']}},'ctlr_alloc': False,'mode': 'STATIC'}]})] }}"
+  ansible.builtin.set_fact:
+    vnic_list: "{{ vnic_list + [ item|combine({'vnic_networks':[{'ip':{'mask': se_item[mac_mapping[item.linux_name]]['mask'],'ip_addr': {'type': 'V4', 'addr': se_item[mac_mapping[item.linux_name]]['ip']}},'ctlr_alloc': False,'mode': 'STATIC'}]})] }}"
   loop: "{{ se_vnics | flatten(levels=1) }}"
   when: "item.linux_name in mac_mapping
         and
@@ -99,10 +103,10 @@
         se_item[mac_mapping[item.linux_name]]['mask'] != None"
 
 - name: '{{ "Preparing SE interfaces with dynamic IPs: " + se_item.name }}'
-  set_fact:
-      vnic_list: "{{ vnic_list + [ item | combine({'dhcp_enabled': True}) ] }}"
+  ansible.builtin.set_fact:
+    vnic_list: "{{ vnic_list + [ item | combine({'dhcp_enabled': True}) ] }}"
   vars:
-      new_item: "{ 'dhcp_enabled': 'true' }"
+    new_item: "{ 'dhcp_enabled': 'true' }"
   loop: "{{ se_vnics | flatten(levels=1) }}"
   when: "item.linux_name in mac_mapping
         and
@@ -115,7 +119,7 @@
         se_item[mac_mapping[item.linux_name]]['ip'] == None)"
 
 - name: '{{ "Configure data NIC IP addresses: " + se_item.name }}'
-  avi_serviceengine:
+  vmware.alb.avi_serviceengine:
     avi_credentials: "{{ avi_credentials | default(omit) }}"
     api_context: "{{ avi_api_context | default(omit) }}"
     avi_api_update_method: patch
