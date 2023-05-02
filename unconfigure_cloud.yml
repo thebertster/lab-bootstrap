@@ -88,7 +88,6 @@
         distribute_load_active_standby: false
         ha_mode: "HA_MODE_SHARED"
         hm_on_standby: true
-        license_tier: "ENTERPRISE_18"
         license_type: "LIC_CORES"
         max_scaleout_per_vs: 4
         max_se: 10
