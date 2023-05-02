@@ -1,25 +1,26 @@
 ---
-- hosts: all
+- name: "Deploy Docker-based Controller"
+  hosts: all
   vars_files:
     - "deploy.yml"
   vars:
     build_path: '{{ "/mnt/" + (build_location | default("builds")) + "/" }}'
   tasks:
     - name: "Prepare environment..."
-      tempfile:
+      ansible.builtin.tempfile:
         state: "directory"
         path: "~"
         prefix: "deploy"
       register: tmp_dir
 
     - name: '{{ "Extract docker installer for version " + controller_version }}'
-      unarchive:
+      ansible.builtin.unarchive:
         remote_src: "yes"
         src: '{{ build_path + controller_version + "/" + build_name + "/docker_install.tar.gz" }}'
         dest: "{{ tmp_dir.path }}"
 
     - name: "Install Controller..."
-      expect:
+      ansible.builtin.expect:
         command: '{{ "./avi_baremetal_setup.py -c -cc " + num_cpu + " -cm " + mem + " -i " + ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0]) }}'
         chdir: "{{ tmp_dir.path }}"
         timeout: null
@@ -27,12 +28,12 @@
           "do you want to remove and continue": "y"
 
     - name: "remove tmp_dir"
-      file:
+      anisble.builtin.file:
         path: "{{ tmp_dir.path }}"
         state: "absent"
 
     - name: "Wait for Controller to be up..."
-      uri:
+      ansible.builtin.uri:
         url: '{{ "https://" + ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0]) + "/api/cluster/runtime" }}'
         return_content: "yes"
         validate_certs: "no"
@@ -42,11 +43,27 @@
       retries: 20
       delay: 30
 
-- import_playbook: bootstrap.yml
-- import_playbook: configure_license.yml
-- import_playbook: configure_sslcerts.yml
-- import_playbook: configure_portal_cert.yml
-- import_playbook: configure_cloud.yml
-- import_playbook: configure_dns.yml
-- import_playbook: create_persistence.yml
-- import_playbook: create_vs.yml
+
+- name: "Bootstrap"
+  ansible.builtin.import_playbook: bootstrap.yml
+
+- name: "Configure License"
+  ansible.builtin.import_playbook: configure_license.yml
+
+- name: "Configure SSL Certificates"
+  ansible.builtin.import_playbook: configure_sslcerts.yml
+
+- name: "Configure Portal Certificate"
+  ansible.builtin.import_playbook: configure_portal_cert.yml
+
+- name: "Configure vCenter Cloud"
+  ansible.builtin.import_playbook: configure_cloud.yml
+
+- name: "Configure DNS Service"
+  ansible.builtin.import_playbook: configure_dns.yml
+
+- name: "Create Persistence Profile"
+  ansible.builtin.import_playbook: create_persistence.yml
+
+- name: "Create Virtual Service"
+  ansible.builtin.import_playbook: create_vs.yml
