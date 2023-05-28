@@ -1,0 +1,32 @@
+---
+- name: "Configure Service Engine Groups"
+  hosts: "localhost"
+  connection: "local"
+  vars_files:
+    - "generic.yml"
+
+  tasks:
+    - name: "Configure SE Groups"
+      vmware.alb.avi_serviceenginegroup:
+        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        name: "{{ item.name }}"
+        cloud_ref: '{{ "/api/cloud/?name=" + cloud_parameters.name }}'
+        vcenter_folder: '{{ item.vcenter_folder | default("Roberto/SEs") }}'
+        se_name_prefix: '{{ item.se_name_prefix | default("rcse") }}'
+        max_vs_per_se: "{{ item.max_vs_per_se | default(omit) }}"
+        max_se: "{{ item.max_se | default(omit) }}"
+        min_scaleout_per_vs: "{{ item.min_scale | default(1) }}"
+        vcpus_per_se: "{{ item.vcpus_per_se | default(1) }}"
+        memory_per_se: "{{ item.memory_per_se | default(2048) }}"
+        disk_per_se: "{{ item.disk_per_se | default(15) }}"
+        cpu_reserve: "{{ item.cpu_reserve | default(false) }}"
+        mem_reserve: "{{ item.mem_reserve | default(false) }}"
+        vcenter_hosts: "{{ item.vcenter_hosts | default(omit) }}"
+        vcenter_clusters: "{{ item.vcenter_clusters | default(omit) }}"
+        vcenter_datastores: "{{ item.vcenter_datastores | default(omit) }}"
+        ha_mode: "{{ item.ha_mode | default(omit) }}"
+        algo: "{{ item.algo | default(omit) }}"
+        buffer_se: "{{ item.buffer_se | default(omit) }}"
+        se_deprovision_delay: "{{ item.se_deprovision_delay | default(omit) }}"
+      loop: "{{ seg_config }}"

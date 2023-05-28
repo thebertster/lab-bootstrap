@@ -60,7 +60,7 @@ seg_config:
     disk_per_se: 15
     se_name_prefix: "rcse"
     vcenter_folder: "Roberto/SEs"
-    vcenter_hosts:
+    vcenter_clusters:
       host_refs:
         - "/api/vimgrhostruntime/?name=wdc-06-r08esx07.oc.vmware.com"
         - "/api/vimgrhostruntime/?name=wdc-06-r08esx08.oc.vmware.com"
@@ -82,7 +82,7 @@ seg_config:
     disk_per_se: 15
     se_name_prefix: "rcseg"
     vcenter_folder: "Roberto/SEs"
-    vcenter_hosts:
+    vcenter_clusters:
       host_refs:
         - "/api/vimgrhostruntime/?name=wdc-06-r08esx07.oc.vmware.com"
         - "/api/vimgrhostruntime/?name=wdc-06-r08esx08.oc.vmware.com"

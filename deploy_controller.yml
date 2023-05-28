@@ -17,7 +17,7 @@
         datastore: "{{ cloud_parameters.datastore }}"
         name: "{{ controller_name }}"
         networks: '{u"Management":u"{{ cloud_parameters.controller_network }}"}'
-        ovf: '{{ build_location + controller_version + "/" + build_name + "/controller.ova" }}'
+        ovf: '{{ build_path + controller_version + "/" + build_name + "/controller.ova" }}'
         validate_certs: "no"
         folder: '{{ cloud_parameters.datacenter + "/vm/" + cloud_parameters.controller_folder }}'
         properties: '{ u"avi.mgmt-ip.CONTROLLER":u"{{ controller_ip }}", u"avi.mgmt-mask.CONTROLLER":u"{{ controller_mask }}", u"avi.default-gw.CONTROLLER":u"{{ controller_gw }}"}'

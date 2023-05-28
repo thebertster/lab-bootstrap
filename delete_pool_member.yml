@@ -15,5 +15,7 @@
         lb_algorithm: "{{ lb_algorithm | default(omit) }}"
         servers:
           - ip:
-              addr: 100.64.67.73
+              addr: 0.0.0.0
               type: V4
+            hostname: rc-linux-03.rc.demo.avi.local
+            resolve_server_by_dns: true

@@ -1,14 +1,12 @@
 ---
 - hosts: all
-  collections:
-    - vmware.alb
   vars_files:
     - "upgrade_data.yml"
   vars:
     build_path: '{{ "/mnt/" + (build_location | default("builds")) + "/" }}'
   tasks:
     - name: "Checking if base image already uploaded to Controller..."
-      avi_api_session:
+      vmware.alb.avi_api_session:
         avi_credentials: "{{ avi_credentials | default(omit) }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         http_method: "get"
@@ -19,7 +17,7 @@
       register: upgrade_image
       when: upgrade_version is defined
     - name: "Uploading base image file to Controller..."
-      avi_api_image:
+      vmware.alb.avi_api_image:
         avi_credentials: "{{ avi_credentials | default(omit) }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         file_path: '{{ build_path + upgrade_version + "/" + upgrade_build + "/controller" + ("_docker.tgz" if docker_controller is defined and docker_controller else ".pkg") }}'
@@ -28,7 +26,7 @@
         - upgrade_image.obj.count == 0
 
     - name: "Checking if Controller patch image already uploaded to Controller..."
-      avi_api_session:
+      vmware.alb.avi_api_session:
         avi_credentials: "{{ avi_credentials | default(omit) }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         http_method: "get"
@@ -40,7 +38,7 @@
       register: controller_patch_image
       when: controller_patch_version is defined
     - name: "Upload Controller patch file..."
-      avi_api_image:
+      vmware.alb.avi_api_image:
         avi_credentials: "{{ avi_credentials | default(omit) }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         file_path: '{{ build_path + controller_patch_version + "/" + controller_patch_build + "/controller_patch.pkg" }}'
@@ -49,7 +47,7 @@
         - controller_patch_image.obj.count == 0
 
     - name: "Checking if SE patch image already uploaded to Controller.."
-      avi_api_session:
+      vmware.alb.avi_api_session:
         avi_credentials: "{{ avi_credentials | default(omit) }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         http_method: "get"
@@ -61,7 +59,7 @@
       register: se_patch_image
       when: se_patch_version is defined
     - name: "Upload SE patch file..."
-      avi_api_image:
+      vmware.alb.avi_api_image:
         avi_credentials: "{{ avi_credentials | default(omit) }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         file_path: '{{ build_path + se_patch_version + "/" + se_patch_build + "/se_patch.pkg" }}'
@@ -70,7 +68,7 @@
         - se_patch_image.obj.count == 0
 
     - name: "Getting base image ID..."
-      avi_api_session:
+      vmware.alb.avi_api_session:
         avi_credentials: "{{ avi_credentials | default(omit) }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         http_method: "get"
@@ -82,7 +80,7 @@
       when:
         - upgrade_version is defined
     - name: "Getting Controller patch image ID..."
-      avi_api_session:
+      vmware.alb.avi_api_session:
         avi_credentials: "{{ avi_credentials | default(omit) }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         http_method: "get"
@@ -95,7 +93,7 @@
       when:
         - controller_patch_version is defined
     - name: "Getting SE patch image ID..."
-      avi_api_session:
+      vmware.alb.avi_api_session:
         avi_credentials: "{{ avi_credentials | default(omit) }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         http_method: "get"
@@ -109,7 +107,7 @@
         - se_patch_version is defined
 
     - name: "Performing upgrade..."
-      avi_api_session:
+      vmware.alb.avi_api_session:
         avi_credentials: "{{ avi_credentials | default(omit) }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         http_method: post
