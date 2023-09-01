@@ -109,7 +109,10 @@
 
     - name: "Collate usable subnets"
       ansible.builtin.set_fact:
-        usable_networks: '{{ usable_networks + [{"nw_ref": "/api/network/?name=" + item.name}] }}'
+        # usable_networks: '{{ usable_networks + [{"nw_ref": "/api/network/?name=" + item.name}] }}'
+        usable_networks: |
+          {{ usable_networks + [{"nw_ref": lookup("vmware.alb.avi", avi_credentials=avi_credentials, obj_name=item.name,
+          obj_type="network", params={"cloud_ref.uuid": cloud.obj.uuid, "fields": "url"}, wantlist=true)[0]["url"]}]}}
       when: item.add_to_ipam
       loop: "{{ ipam_config }}"
 

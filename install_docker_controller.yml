@@ -2,7 +2,7 @@
 - name: "Deploy Docker-based Controller"
   hosts: all
   vars_files:
-    - "deploy.yml"
+    - "deployment_settings.yml"
   vars:
     build_path: '{{ "/mnt/" + (build_location | default("builds")) + "/" }}'
   tasks:
@@ -21,20 +21,22 @@
 
     - name: "Install Controller..."
       ansible.builtin.expect:
-        command: '{{ "./avi_baremetal_setup.py -c -cc " + num_cpu + " -cm " + mem + " -i " + ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0]) }}'
+        command: |
+          {{ "./avi_baremetal_setup.py -c -cc " ~ controller_num_cpu + " -cm " ~ controller_mem + " -i " + ansible_default_ipv4.address
+          | default(ansible_all_ipv4_addresses[0]) }}
         chdir: "{{ tmp_dir.path }}"
         timeout: null
         responses:
           "do you want to remove and continue": "y"
 
-    - name: "remove tmp_dir"
-      anisble.builtin.file:
+    - name: "Remove tmp_dir"
+      ansible.builtin.file:
         path: "{{ tmp_dir.path }}"
         state: "absent"
 
     - name: "Wait for Controller to be up..."
       ansible.builtin.uri:
-        url: '{{ "https://" + ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0]) + "/api/cluster/runtime" }}'
+        url: '{{ "https://" + ansible_default_ipv4.address | default(ansible_all_ipv4_addresses[0]) + "/api/cluster/runtime" }}'
         return_content: "yes"
         validate_certs: "no"
       delegate_to: "localhost"

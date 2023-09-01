@@ -52,8 +52,8 @@
           port: 636
           security_mode: "AUTH_LDAP_SECURE_USE_LDAPS"
           server: "{{ ldap_parameters.servers }}"
-          user_bind:
-            token: "<user>"
+#          user_bind:
+#            token: "<user>"
           settings:
             admin_bind_dn: "{{ ldap_parameters.admin_bind_dn }}"
             group_filter: "(objectClass=group)"

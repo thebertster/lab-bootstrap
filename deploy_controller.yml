@@ -2,7 +2,7 @@
 - name: "Deploy Controller in vCenter"
   hosts: all
   vars_files:
-    - "deploy.yml"
+    - "deployment_settings.yml"
     - "generic.yml"
   vars:
     build_path: '{{ "/mnt/" + (build_location | default("builds")) + "/" }}'
@@ -18,11 +18,41 @@
         name: "{{ controller_name }}"
         networks: '{u"Management":u"{{ cloud_parameters.controller_network }}"}'
         ovf: '{{ build_path + controller_version + "/" + build_name + "/controller.ova" }}'
+        disk_provisioning: "thin"
         validate_certs: "no"
         folder: '{{ cloud_parameters.datacenter + "/vm/" + cloud_parameters.controller_folder }}'
-        properties: '{ u"avi.mgmt-ip.CONTROLLER":u"{{ controller_ip }}", u"avi.mgmt-mask.CONTROLLER":u"{{ controller_mask }}", u"avi.default-gw.CONTROLLER":u"{{ controller_gw }}"}'
-        power_on: "yes"
+        properties: |
+          { u"avi.mgmt-ip.CONTROLLER":u"{{ controller_ip }}",
+          u"avi.mgmt-mask.CONTROLLER":u"{{ controller_mask }}",
+          u"avi.default-gw.CONTROLLER":u"{{ controller_gw }}"}
+        power_on: "no"
         allow_duplicates: "no"
+      register: controller_vm
+
+    - name: "Reconfigure Controller VM"
+      community.vmware.vmware_guest:
+        hostname: "{{ cloud_parameters.vcenter }}"
+        username: "{{ cloud_parameters.username }}"
+        password: "{{ cloud_parameters.password }}"
+        uuid: "{{ controller_vm.instance['instance_uuid'] }}"
+        use_instance_uuid: true
+        state: "present"
+        hardware:
+          num_cpus: "{{ controller_num_cpu }}"
+          memory_mb: "{{ controller_mem * 1024 }}"
+        disk:
+          - size_gb: "{{ controller_disk }}"
+        validate_certs: "no"
+
+    - name: "Power on Controller vm"
+      community.vmware.vmware_guest_powerstate:
+        hostname: "{{ cloud_parameters.vcenter }}"
+        username: "{{ cloud_parameters.username }}"
+        password: "{{ cloud_parameters.password }}"
+        uuid: "{{ controller_vm.instance['instance_uuid'] }}"
+        use_instance_uuid: true
+        state: "powered-on"
+        validate_certs: "no"
 
     - name: "Wait for Controller to be up..."
       ansible.builtin.uri:
