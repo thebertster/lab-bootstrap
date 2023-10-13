@@ -1,5 +1,5 @@
 ---
-- name: "Delete allVirtual Services"
+- name: "Delete all Virtual Services"
   hosts: "localhost"
   connection: "local"
   vars_files:

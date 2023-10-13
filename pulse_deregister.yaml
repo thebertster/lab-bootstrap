@@ -1,0 +1,15 @@
+---
+- name: "De-register Controller from Pulse"
+  hosts: "localhost"
+  connection: "local"
+  tasks:
+    - name: Pulse registration or deregistration
+      vmware.alb.avi_pulse_registration:
+        avi_credentials: "{{ avi_credentials }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        state: "absent"
+        jwt_token: "{{ jwt_token }}"
+        name: "{{ cluster_name }}"
+        description: "Registration and deregistration"
+        email: "{{ csp_email }}"
+        account_id: "{{ csp_org_id }}"

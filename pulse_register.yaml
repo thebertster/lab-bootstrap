@@ -1,0 +1,27 @@
+---
+- name: "Register Controller with Pulse"
+  hosts: "localhost"
+  connection: "local"
+  tasks:
+    - name: Pulse registration or deregistration
+      vmware.alb.avi_pulse_registration:
+        avi_credentials: "{{ avi_credentials }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        state: "present"
+        jwt_token: "{{ jwt_token }}"
+        name: "{{ cluster_name }}"
+        description: "Registration and deregistration"
+        email: "{{ csp_email }}"
+        account_id: "{{ csp_org_id }}"
+        optins: "present"
+        enable_pulse_case_management: false
+        case_config:
+          enable_auto_case_creation_on_controller_failure: false
+          enable_auto_case_creation_on_se_failure: false
+        enable_pulse_waf_management: true
+        waf_config:
+          enable_waf_signatures_notifications: true
+          enable_auto_download_waf_signatures: true
+        enable_user_agent_db_sync: true
+        enable_ip_reputation: true
+        enable_appsignature_sync: true
