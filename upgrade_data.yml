@@ -1,12 +1,12 @@
 # code: language=ansible
 ---
-# upgrade_version: "22.1.4"
-# upgrade_build: "last-released"
+upgrade_version: "22.1.5"
+upgrade_build: "last-released"
 build_location: "rel-builds"
-controller_patch_version: "22.1.4-2p1"
-controller_patch_build: "last-released"
-se_patch_version: "22.1.4-2p1"
-se_patch_build: "last-released"
+# controller_patch_version: "22.1.4-2p1"
+# controller_patch_build: "last-released"
+# se_patch_version: "22.1.4-2p1"
+# se_patch_build: "last-released"
 upgrade_options:
   system: true
   disruptive: true
