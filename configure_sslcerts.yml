@@ -8,7 +8,7 @@
   tasks:
     - name: "Create RC-LABCA-ECDSA Certificate"
       vmware.alb.avi_sslkeyandcertificate:
-        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         name: "RC-LABCA-ECDSA"
         type: "SSL_CERTIFICATE_TYPE_CA"
@@ -36,7 +36,7 @@
 
     - name: "Create Wildcard-ECDSA-Cert"
       vmware.alb.avi_sslkeyandcertificate:
-        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         name: "Wildcard-ECDSA-Cert"
         type: "SSL_CERTIFICATE_TYPE_VIRTUALSERVICE"
@@ -86,7 +86,7 @@
 
     - name: "Create Wildcard-RSA-Cert"
       vmware.alb.avi_sslkeyandcertificate:
-        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         name: "Wildcard-RSA-Cert"
         type: "SSL_CERTIFICATE_TYPE_VIRTUALSERVICE"
@@ -164,7 +164,7 @@
 
     - name: "Create Wildcard-ECDSA-Cert-Portal"
       vmware.alb.avi_sslkeyandcertificate:
-        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         name: "Wildcard-ECDSA-Cert-Portal"
         type: "SSL_CERTIFICATE_TYPE_SYSTEM"

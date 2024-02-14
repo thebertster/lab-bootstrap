@@ -42,7 +42,7 @@
 
     - name: "Configure LDAP Auth"
       vmware.alb.avi_authprofile:
-        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         ldap:
           base_dn: "{{ ldap_parameters.base_dn }}"
@@ -80,7 +80,7 @@
 
     - name: "Configure LDAP Auth Mapping Profile (>=22.1.1)"
       vmware.alb.avi_authmappingprofile:
-        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         name: "{{ ldap_parameters.profile_name }}"
         type: "AUTH_PROFILE_LDAP"
@@ -99,7 +99,7 @@
 
     - name: "Configure System"
       vmware.alb.avi_systemconfiguration:
-        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         api_version: "{{ avi_credentials.api_version }}"
         dns_configuration: "{{ system_configuration.dns_configuration | default(omit) }}"
@@ -112,7 +112,7 @@
 
     - name: "Configure backup passphrase"
       vmware.alb.avi_backupconfiguration:
-        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         name: "Backup-Configuration"
         backup_passphrase: "{{ system_configuration.backup_passphrase | default(omit) }}"

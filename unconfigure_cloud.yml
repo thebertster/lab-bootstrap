@@ -8,7 +8,7 @@
   tasks:
     - name: "Discover Service Engines"
       vmware.alb.avi_api_session:
-        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         http_method: "get"
         path: '{{ "serviceengine/?cloud_ref.name=" + cloud_parameters.name }}'
@@ -16,7 +16,7 @@
 
     - name: "Delete Service Engines"
       vmware.alb.avi_api_session:
-        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         http_method: "delete"
         path: '{{  "serviceengine/" + item.uuid }}'
@@ -24,14 +24,14 @@
 
     - name: "Revert cloud to No Access"
       vmware.alb.avi_cloud:
-        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         name: "{{ cloud_parameters.name }}"
         vtype: CLOUD_NONE
 
     - name: "Delete Avi IPAM Provider"
       vmware.alb.avi_ipamdnsproviderprofile:
-        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         name: '{{ "VMware-IPAM-" + cloud_parameters.name }}'
         type: "IPAMDNS_TYPE_INTERNAL"
@@ -39,7 +39,7 @@
 
     - name: "Delete Avi DNS Provider"
       vmware.alb.avi_ipamdnsproviderprofile:
-        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         name: '{{ "VMware-DNS-" + cloud_parameters.name }}'
         type: "IPAMDNS_TYPE_INTERNAL_DNS"
@@ -47,7 +47,7 @@
 
     - name: "Remove management default route"
       vmware.alb.avi_vrfcontext:
-        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         name: "management"
         cloud_ref: '{{ "/api/cloud/?name=" + cloud_parameters.name }}'
@@ -55,7 +55,7 @@
 
     - name: "Discover remaining configured networks"
       vmware.alb.avi_api_session:
-        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         http_method: "get"
         path: '{{ "network/?cloud_ref.name=" + cloud_parameters.name }}'
@@ -63,7 +63,7 @@
 
     - name: "Delete configured networks"
       vmware.alb.avi_api_session:
-        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         http_method: "delete"
         path: '{{  "network/" + item.uuid }}'
@@ -71,7 +71,7 @@
 
     - name: "Revert default SE Group"
       vmware.alb.avi_serviceenginegroup:
-        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         name: "Default-Group"
         cloud_ref: '{{ "/api/cloud/?name=" + cloud_parameters.name }}'
@@ -109,7 +109,7 @@
 
     - name: "Delete non-default SE Groups"
       vmware.alb.avi_serviceenginegroup:
-        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         name: "{{ item.name }}"
         cloud_ref: '{{ "/api/cloud/?name=" + cloud_parameters.name }}'
@@ -119,7 +119,7 @@
 
     - name: "Delete cloud"
       vmware.alb.avi_cloud:
-        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         name: "{{ cloud_parameters.name }}"
         vtype: "CLOUD_NONE"

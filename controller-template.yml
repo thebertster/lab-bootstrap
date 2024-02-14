@@ -47,6 +47,13 @@ dns_config:
   service_domains:
     - domain_name: "vs.rc.demo.avi.local"
   auth_domains:
+    - domain_name: "vs.rc.demo.avi.local"
+      name_server: "dns1.rc.demo.avi.local"
+      admin_email: "hostmaster@rc.demo.avi.local"
+    - domain_name: "gslb.rc.demo.avi.local"
+      name_server: "dns1.rc.demo.avi.local"
+      admin_email: "hostmaster@rc.demo.avi.local"
+  valid_domains:
     - "vs.rc.demo.avi.local"
     - "gslb.rc.demo.avi.local"
   dns_vip: "xxxxx"

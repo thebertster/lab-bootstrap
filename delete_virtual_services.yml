@@ -19,7 +19,7 @@
 
     - name: "Delete Virtual Services"
       vmware.alb.avi_virtualservice:
-        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         name: "{{ item.name }}"
         state: "absent"
@@ -27,7 +27,7 @@
 
     - name: "Delete Pools"
       vmware.alb.avi_pool:
-        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         name: "{{ item.name }}"
         state: "absent"
@@ -35,7 +35,7 @@
 
     - name: "Delete VsVips"
       vmware.alb.avi_vsvip:
-        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         name: "{{ item.name }}"
         state: "absent"

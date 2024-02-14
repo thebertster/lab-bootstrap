@@ -8,7 +8,7 @@
   tasks:
     - name: "Create DNS VSVip"
       vmware.alb.avi_vsvip:
-        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         name: '{{ "vsvip-" + dns_config.dns_vs_name + "-" + cloud_parameters.name }}'
         cloud_ref: '{{ "/api/cloud/?name=" + cloud_parameters.name }}'
@@ -25,7 +25,7 @@
 
     - name: "Create DNS Application Profile"
       vmware.alb.avi_applicationprofile:
-        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         name: Avi-DNS-Profile
         dns_service_profile:
@@ -39,12 +39,14 @@
           negative_caching_ttl: 30
           num_dns_ip: 1
           ttl: 30
+          dns_zones: "{{ dns_config.auth_domains | default(omit) }}"
+          domain_names: "{{ dns_config.valid_domains | default(omit) }}"
         type: APPLICATION_PROFILE_TYPE_DNS
       register: appprofile
 
     - name: "Create Virtual Service"
       vmware.alb.avi_virtualservice:
-        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         name: "{{ dns_config.dns_vs_name }}"
         vsvip_ref: "{{ vsvip.obj.url }}"
@@ -63,7 +65,7 @@
 
     - name: "Set System DNS VS Configuration"
       vmware.alb.avi_api_session:
-        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         http_method: "patch"
         path: "systemconfiguration"

@@ -2,7 +2,7 @@
 ---
 - name: '{{ "Generate token for SE: " + se_item.name }}'
   vmware.alb.avi_api_session:
-    avi_credentials: "{{ avi_credentials | default(omit) }}"
+    avi_credentials: "{{ avi_credentials }}"
     api_context: "{{ avi_api_context | default(omit) }}"
     http_method: "get"
     path: "securetoken-generate"
@@ -47,7 +47,7 @@
 
 - name: '{{ "Wait for SE to connect to Controller: " + se_item.name }}'
   vmware.alb.avi_api_session:
-    avi_credentials: "{{ avi_credentials | default(omit) }}"
+    avi_credentials: "{{ avi_credentials }}"
     api_context: "{{ avi_api_context | default(omit) }}"
     http_method: "get"
     path: "serviceengine"
@@ -120,7 +120,7 @@
 
 - name: '{{ "Configure data NIC IP addresses: " + se_item.name }}'
   vmware.alb.avi_serviceengine:
-    avi_credentials: "{{ avi_credentials | default(omit) }}"
+    avi_credentials: "{{ avi_credentials }}"
     api_context: "{{ avi_api_context | default(omit) }}"
     avi_api_update_method: patch
     avi_api_patch_op: replace

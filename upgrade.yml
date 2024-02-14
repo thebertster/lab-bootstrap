@@ -8,7 +8,7 @@
   tasks:
     - name: "Checking if base image already uploaded to Controller..."
       vmware.alb.avi_api_session:
-        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         http_method: "get"
         path: "/image"
@@ -19,7 +19,7 @@
       when: upgrade_version is defined
     - name: "Uploading base image file to Controller..."
       vmware.alb.avi_api_image:
-        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         file_path: >-
           {{ build_path + upgrade_version + "/" + upgrade_build + "/controller" +
@@ -30,7 +30,7 @@
 
     - name: "Checking if Controller patch image already uploaded to Controller..."
       vmware.alb.avi_api_session:
-        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         http_method: "get"
         path: "/image"
@@ -42,7 +42,7 @@
       when: controller_patch_version is defined
     - name: "Upload Controller patch file..."
       vmware.alb.avi_api_image:
-        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         file_path: '{{ build_path + controller_patch_version + "/" + controller_patch_build + "/controller_patch.pkg" }}'
       when:
@@ -51,7 +51,7 @@
 
     - name: "Checking if SE patch image already uploaded to Controller.."
       vmware.alb.avi_api_session:
-        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         http_method: "get"
         path: "/image"
@@ -63,7 +63,7 @@
       when: se_patch_version is defined
     - name: "Upload SE patch file..."
       vmware.alb.avi_api_image:
-        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         file_path: '{{ build_path + se_patch_version + "/" + se_patch_build + "/se_patch.pkg" }}'
       when:
@@ -72,7 +72,7 @@
 
     - name: "Getting base image ID..."
       vmware.alb.avi_api_session:
-        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         http_method: "get"
         path: "/image"
@@ -84,7 +84,7 @@
         - upgrade_version is defined
     - name: "Getting Controller patch image ID..."
       vmware.alb.avi_api_session:
-        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         http_method: "get"
         path: "/image"
@@ -97,7 +97,7 @@
         - controller_patch_version is defined
     - name: "Getting SE patch image ID..."
       vmware.alb.avi_api_session:
-        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         http_method: "get"
         path: "/image"
@@ -111,7 +111,7 @@
 
     - name: "Performing upgrade..."
       vmware.alb.avi_api_session:
-        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         http_method: post
         timeout: 300

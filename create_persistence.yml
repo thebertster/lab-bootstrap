@@ -7,7 +7,7 @@
   tasks:
     - name: "Create PHPSESSID Persistence Profile"
       vmware.alb.avi_applicationpersistenceprofile:
-        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         name: "Persist-PHPSESSID"
         app_cookie_persistence_profile:

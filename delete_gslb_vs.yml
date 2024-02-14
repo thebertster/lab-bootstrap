@@ -8,27 +8,27 @@
   tasks:
     - name: "Delete GSLB Service"
       vmware.alb.avi_gslbservice:
-        avi_credentials: "{{ gslb_controllers[0].avi_credentials | default(omit) }}"
+        avi_credentials: "{{ gslb_controllers[0].avi_credentials }}"
         name: "{{ gslb_parameters.name }}"
         state: "absent"
 
     - name: "Delete Virtual Services"
       vmware.alb.avi_virtualservice:
-        avi_credentials: "{{ item.avi_credentials | default(omit) }}"
+        avi_credentials: "{{ item.avi_credentials }}"
         name: "{{ vs_parameters.name }}"
         state: "absent"
       loop: "{{ gslb_controllers }}"
 
     - name: "Delete Pools"
       vmware.alb.avi_pool:
-        avi_credentials: "{{ item.avi_credentials | default(omit) }}"
+        avi_credentials: "{{ item.avi_credentials }}"
         name: '{{ vs_parameters.name + "-pool" }}'
         state: "absent"
       loop: "{{ gslb_controllers }}"
 
     - name: "Delete VSVips"
       vmware.alb.avi_vsvip:
-        avi_credentials: "{{ item.avi_credentials | default(omit) }}"
+        avi_credentials: "{{ item.avi_credentials }}"
         name: '{{ "vsvip-" + vs_parameters.name + "-vip" }}'
         state: "absent"
       loop: "{{ gslb_controllers }}"

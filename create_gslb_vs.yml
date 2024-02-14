@@ -10,7 +10,7 @@
   tasks:
     - name: "Create VSVip"
       vmware.alb.avi_vsvip:
-        avi_credentials: "{{ item.avi_credentials | default(omit) }}"
+        avi_credentials: "{{ item.avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         name: '{{ "vsvip-" + vs_parameters.name + "-vip" }}'
         cloud_ref: '{{ "/api/cloud/?name=" + cloud_parameters.name }}'
@@ -26,7 +26,7 @@
 
     - name: "Create Pools"
       vmware.alb.avi_pool:
-        avi_credentials: "{{ item.avi_credentials | default(omit) }}"
+        avi_credentials: "{{ item.avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         name: '{{ vs_parameters.name + "-pool" }}'
         lb_algorithm: LB_ALGORITHM_ROUND_ROBIN
@@ -37,7 +37,7 @@
 
     - name: "Create Virtual Services"
       vmware.alb.avi_virtualservice:
-        avi_credentials: "{{ item.avi_credentials | default(omit) }}"
+        avi_credentials: "{{ item.avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         name: "{{ vs_parameters.name }}"
         vsvip_ref: "{{ vsvip.results[i].obj.url }}"
@@ -69,7 +69,7 @@
 
     - name: "Create GSLB Service"
       vmware.alb.avi_gslbservice:
-        avi_credentials: "{{ gslb_controllers[0].avi_credentials | default(omit) }}"
+        avi_credentials: "{{ gslb_controllers[0].avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         name: "{{ gslb_parameters.name }}"
         domain_names:

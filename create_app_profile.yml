@@ -7,7 +7,7 @@
   tasks:
     - name: "Create Application Profile"
       vmware.alb.avi_applicationprofile:
-        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         http_profile:
           allow_dots_in_header_name: false

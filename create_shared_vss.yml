@@ -7,7 +7,7 @@
   tasks:
     - name: "Create VSVip"
       vmware.alb.avi_vsvip:
-        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         name: '{{ "vsvip-shared-test-" + cloud_parameters.name }}'
         cloud_ref: '{{ "/api/cloud/?name=" + cloud_parameters.name }}'

@@ -12,7 +12,7 @@
 
     - name: "Get Service Engine Group"
       vmware.alb.avi_api_session:
-        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         http_method: "get"
         path: "serviceenginegroup"
@@ -29,7 +29,7 @@
 
     - name: "Ensure SE image is built"
       vmware.alb.avi_api_session:
-        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         http_method: "post"
         timeout: 600
@@ -42,7 +42,7 @@
 
     - name: "Download SE image from Controller"
       vmware.alb.avi_api_fileservice:
-        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         path: "seova"
         upload: false

@@ -8,7 +8,7 @@
   tasks:
     - name: "Configure BGP"
       vmware.alb.avi_vrfcontext:
-        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         name: "global"
         bgp_profile:

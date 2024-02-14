@@ -11,7 +11,7 @@
   tasks:
     - name: "Create Avi IPAM Provider"
       vmware.alb.avi_ipamdnsproviderprofile:
-        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         name: '{{ "VMware-IPAM-" + cloud_parameters.name }}'
         type: "IPAMDNS_TYPE_INTERNAL"
@@ -20,7 +20,7 @@
 
     - name: "Create Avi DNS Provider"
       vmware.alb.avi_ipamdnsproviderprofile:
-        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         name: '{{ "VMware-DNS-" + cloud_parameters.name }}'
         type: IPAMDNS_TYPE_INTERNAL_DNS
@@ -30,7 +30,7 @@
 
     - name: "Configure vSphere Cloud"
       vmware.alb.avi_cloud:
-        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         name: "{{ cloud_parameters.name }}"
         vcenter_configuration:
@@ -48,7 +48,7 @@
 
     - name: "Wait for network sync for cloud to complete..."
       vmware.alb.avi_api_session:
-        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         http_method: "get"
         path: "cloudruntime"
@@ -61,7 +61,7 @@
 
     - name: "Configure cloud management network"
       vmware.alb.avi_cloud:
-        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         avi_api_update_method: "patch"
         avi_api_patch_op: "replace"
@@ -73,7 +73,7 @@
 
     - name: "Configure management default route"
       vmware.alb.avi_vrfcontext:
-        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         name: "management"
         cloud_ref: '{{ "/api/cloud/?name=" + cloud_parameters.name }}'
@@ -90,7 +90,7 @@
 
     - name: "Configure networks"
       vmware.alb.avi_network:
-        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         name: "{{ item.name }}"
         cloud_ref: '{{ "/api/cloud/?name=" + cloud_parameters.name }}'
@@ -118,7 +118,7 @@
 
     - name: "Add usable subnets to IPAM"
       vmware.alb.avi_api_session:
-        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         http_method: "patch"
         path: '{{ "ipamdnsproviderprofile/" + ipamprovider.obj.uuid }}'

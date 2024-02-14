@@ -9,21 +9,21 @@
   tasks:
     - name: "Delete VirtualService"
       avi_virtualservice:
-        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         name: "{{ vs_parameters.name }}"
         state: absent
 
     - name: "Delete Pool"
       avi_pool:
-        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         name: '{{ vs_parameters.name + "-pool" }}'
         state: absent
 
     - name: "Delete VSVip"
       avi_vsvip:
-        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         name: '{{ "vsvip-" + vs_parameters.name + "-vip" }}'
         state: absent

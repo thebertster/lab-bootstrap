@@ -8,7 +8,7 @@
   tasks:
     - name: "Configure SE Groups"
       vmware.alb.avi_serviceenginegroup:
-        avi_credentials: "{{ avi_credentials | default(omit) }}"
+        avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         name: "{{ item.name }}"
         cloud_ref: '{{ "/api/cloud/?name=" + cloud_parameters.name }}'
