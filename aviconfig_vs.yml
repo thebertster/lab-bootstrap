@@ -1,0 +1,12 @@
+---
+- name: "AviConfig Virtual Service"
+  hosts: "localhost"
+  connection: "local"
+  vars_files:
+    - "generic.yml"
+  tasks:
+    - name: "AviConfig Virtual Service Task"
+      import_role:
+        name: vmware.alb.aviconfig
+      vars:
+        avi_config_file: "./aviconfig.yml"
