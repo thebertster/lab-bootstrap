@@ -1,8 +1,3 @@
-rc-controller-1a.yml
-rc-controller-2a.yml
-rc-controller-3a.yml
-rc-controller-4a.yml
-rc-controller-5a.yml
-rc-controller-6a.yml
+rc-controller-*.yml
 license.yml
 test*

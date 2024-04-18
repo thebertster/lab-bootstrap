@@ -67,24 +67,32 @@
 
 - name: "Bootstrap"
   ansible.builtin.import_playbook: bootstrap.yml
+  when: no_bootstrap is undefined
 
 - name: "Configure License"
   ansible.builtin.import_playbook: configure_license.yml
+  when: no_bootstrap is undefined
 
 - name: "Configure SSL Certificates"
   ansible.builtin.import_playbook: configure_sslcerts.yml
+  when: no_bootstrap is undefined
 
 - name: "Configure Portal Certificate"
   ansible.builtin.import_playbook: configure_portal_cert.yml
+  when: no_bootstrap is undefined
 
 - name: "Configure vCenter Cloud"
   ansible.builtin.import_playbook: configure_cloud.yml
+  when: no_bootstrap is undefined
 
 - name: "Configure DNS Service"
   ansible.builtin.import_playbook: configure_dns.yml
+  when: no_bootstrap is undefined
 
 - name: "Create Persistence Profile"
   ansible.builtin.import_playbook: create_persistence.yml
+  when: no_bootstrap is undefined
 
 - name: "Create Virtual Service"
   ansible.builtin.import_playbook: create_vs.yml
+  when: no_bootstrap is undefined
