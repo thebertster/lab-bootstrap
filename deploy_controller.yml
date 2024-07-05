@@ -17,7 +17,7 @@
         datastore: "{{ cloud_parameters.datastore }}"
         name: "{{ controller_name }}"
         networks: '{u"Management":u"{{ cloud_parameters.controller_network }}"}'
-        ovf: '{{ build_path + controller_version + "/" + build_name + "/controller.ova" }}'
+        ovf: '{{ manual_image_path if manual_image_path is defined else (build_path + controller_version + "/" + build_name + "/controller.ova") }}'
         disk_provisioning: "thin"
         validate_certs: "no"
         folder: '{{ cloud_parameters.datacenter + "/vm/" + cloud_parameters.controller_folder }}'

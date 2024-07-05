@@ -5,6 +5,9 @@
     - "upgrade_data.yml"
   vars:
     build_path: '{{ "/mnt/" + (build_location | default("builds")) + "/" }}'
+    upgrade_file: >-
+      {{ build_path + upgrade_version + "/" + upgrade_build + "/controller" +
+      ("_docker.tgz" if docker_controller is defined and docker_controller else ".pkg") }}
   tasks:
     - name: "Checking if base image already uploaded to Controller..."
       vmware.alb.avi_api_session:
@@ -17,13 +20,12 @@
           type: "IMAGE_TYPE_SYSTEM"
       register: upgrade_image
       when: upgrade_version is defined
+
     - name: "Uploading base image file to Controller..."
       vmware.alb.avi_api_image:
         avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
-        file_path: >-
-          {{ build_path + upgrade_version + "/" + upgrade_build + "/controller" +
-          ("_docker.tgz" if docker_controller is defined and docker_controller else ".pkg") }}
+        file_path: "{{ manual_image_path if manual_image_path is defined else upgrade_file }}"
       when:
         - upgrade_version is defined
         - upgrade_image.obj.count == 0

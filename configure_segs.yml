@@ -30,3 +30,4 @@
         buffer_se: "{{ item.buffer_se | default(omit) }}"
         se_deprovision_delay: "{{ item.se_deprovision_delay | default(omit) }}"
       loop: "{{ seg_config }}"
+      when: seg_config is defined

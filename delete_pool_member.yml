@@ -12,10 +12,9 @@
         name: rc-demo-pool
         avi_api_update_method: patch
         avi_api_patch_op: delete
-        lb_algorithm: "{{ lb_algorithm | default(omit) }}"
         servers:
           - ip:
               addr: 0.0.0.0
               type: V4
             hostname: rc-linux-03.rc.demo.avi.local
-            resolve_server_by_dns: true          
+            resolve_server_by_dns: true

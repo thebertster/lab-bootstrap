@@ -25,7 +25,7 @@
           {{ "./avi_baremetal_setup.py -c -cc " ~ controller_num_cpu + " -cm " ~ controller_mem + " -i " + ansible_default_ipv4.address
           | default(ansible_all_ipv4_addresses[0]) }}
         chdir: "{{ tmp_dir.path }}"
-        timeout: null
+        timeout: 7200
         responses:
           "do you want to remove and continue": "y"
 

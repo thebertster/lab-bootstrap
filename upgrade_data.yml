@@ -1,6 +1,6 @@
 # code: language=ansible
 ---
-upgrade_version: "22.1.5"
+upgrade_version: "22.1.6"
 upgrade_build: "last-released"
 build_location: "rel-builds"
 # controller_patch_version: "22.1.4-2p1"
@@ -12,3 +12,4 @@ upgrade_options:
   disruptive: true
   skip_warnings: true
   suspend_on_failure: false
+# manual_image_path: "/mnt/files/yvsn42/controller.pkg"

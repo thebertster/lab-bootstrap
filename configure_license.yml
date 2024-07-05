@@ -13,4 +13,5 @@
         http_method: "put"
         path: "license"
         data:
-          serial_key: "{{ license_key | default(omit) }}"
+          serial_key: "{{ license_key }}"
+      when: license_key is defined
