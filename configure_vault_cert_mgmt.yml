@@ -1,0 +1,215 @@
+---
+- name: "Create Vault Certificate Management Config"
+  hosts: "localhost"
+  connection: "local"
+  vars_files:
+    - "generic.yml"
+    - "sensitive_vault.yml"
+
+  tasks:
+    - name: "Create Vault CA Certificate"
+      vmware.alb.avi_sslkeyandcertificate:
+        avi_credentials: "{{ avi_credentials }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        name: "Vault-CA"
+        type: "SSL_CERTIFICATE_TYPE_CA"
+        certificate:
+          certificate: |
+            -----BEGIN CERTIFICATE-----
+            MIIDGTCCAgGgAwIBAgIUDk+z3O2gTrO2wVBuqKlls9bNvRUwDQYJKoZIhvcNAQEL
+            BQAwEzERMA8GA1UEAxMIVmF1bHQgQ0EwIBcNMjQwMzI4MTIxNTIxWhgPMjEyNDAz
+            MDQxMjE1NTFaMBMxETAPBgNVBAMTCFZhdWx0IENBMIIBIjANBgkqhkiG9w0BAQEF
+            AAOCAQ8AMIIBCgKCAQEAt4eSJTKj3l0azEtHI1vx3kM5hr2ihGTGINT+ixjYAirY
+            QsScptIVkz4NPvOFvO/P31WGbxhE4udOIQcwnWpHfpPEdR7Y8DfWai4UZIxfGoU6
+            E9qbWr1aAnpN+Iy7HgJ+1bGS3WG2VPJFDGc5w2Jdha5HZSjvkfDOmcSAMoB1wTXc
+            ILAbD0DNuyDuDneU88r9BJ26rLuqTuFQ3PVRBZzdxIo73GxhpKaYndOVaXyburBQ
+            OtJEI+XbQi5yswjX0BV0DH6yx0afqFg8gUis87gauiwIrrjvuIqiqrxY8n2WW/NB
+            IwyR1s6kN8J7xqBrN48ZN3XN8GbDY71no13KN9UynwIDAQABo2MwYTAOBgNVHQ8B
+            Af8EBAMCAQYwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQUMK8WWXGYYHMOqnFr
+            W4dL4TVaMa0wHwYDVR0jBBgwFoAUMK8WWXGYYHMOqnFrW4dL4TVaMa0wDQYJKoZI
+            hvcNAQELBQADggEBABRT1Di1mhqxHBmGJ4YdYlYJmiMPmm8nfBytgBu7/M+dqxua
+            g7//JOKfz3RHqVDJRtEPZS5CduQeB4yoVt3dRY9DnQ8jYzWMUiEbZabc0MHcriL2
+            LZBWCt9LF6xuDFdKJ9+XaEMKwRaVkeCeRxCUwcMYnYdogCdjlM9kvUi3ojitoj0z
+            0pTX2eCs3t+dIzibG/j8sJXFt1nXrTxgP5xJZCbxfFqYS901y/fa7PLP5A3J6M38
+            7/wWDmsWMIG2eRqo8zTXcTJa9Mk5Do15w/xYVlbhHLOGPyMGmM47VOvFNegv8yml
+            LjY0vkCv+yvecg4NTqS3WqKFze9PGs4YEmT4shw=
+            -----END CERTIFICATE-----
+        key_params:
+          algorithm: "SSL_KEY_ALGORITHM_RSA"
+          rsa_params:
+            key_size: "SSL_KEY_2048_BITS"
+            exponent: 65537
+        format: SSL_PEM
+    - name: "Create Vault Intermediate CA Certificate"
+      vmware.alb.avi_sslkeyandcertificate:
+        avi_credentials: "{{ avi_credentials }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        name: "Vault-Intermediate-CA"
+        type: "SSL_CERTIFICATE_TYPE_CA"
+        certificate:
+          certificate: |
+            -----BEGIN CERTIFICATE-----
+            MIID7TCCAtWgAwIBAgIUPF9aCMn9Q+BfisgJg6MsjQit0P0wDQYJKoZIhvcNAQEL
+            BQAwEzERMA8GA1UEAxMIVmF1bHQgQ0EwHhcNMjQwMzI4MTIyNTIwWhcNMjkwMzI3
+            MTIyNTUwWjAgMR4wHAYDVQQDExVWYXVsdCBJbnRlcm1lZGlhdGUgQ0EwggEiMA0G
+            CSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCg2kO9xO83bMlBCjpItvoyf6XOvqiV
+            i08tTmDITWT8Tte0lkMBsieR3XDwyYYYVikynLPNvWxeoMI1ehz9w28tvWBPDtXX
+            DDkiuEklVLsQ9fuCqb+iqNt6zSgEtAx7lDwpfrJHiE1R9S46+Iii1YXOOy+clC7t
+            eqgY/0az5I3MA5NkKGe4zmRshdxXi0cqFi/Zs/5NmPT9ki3W4/XE5KZNW+nJPGse
+            nLIjV5SrBITo7XE8DnQEBadLPrXDnBE+1gbOLB9/FpxcRdS1FpgvD2OHo5pkXBgs
+            JjZmoXYkC/iaZVPA8QCLw+qtTqy1JPuJKrFLgYj0x7O6tQQ7NPz0nN5TAgMBAAGj
+            ggEqMIIBJjAOBgNVHQ8BAf8EBAMCAQYwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4E
+            FgQUdZB4R9eSKbKQJhy6DmA5sUYFM/4wHwYDVR0jBBgwFoAUMK8WWXGYYHMOqnFr
+            W4dL4TVaMa0wUwYIKwYBBQUHAQEERzBFMEMGCCsGAQUFBzAChjdodHRwczovL3Jj
+            LWxpbnV4LXV0aWxzLnJjLmRlbW8uYXZpLmxvY2FsOjgyMDAvdjEvcGtpL2NhMCMG
+            A1UdHgEB/wQZMBegFTATghFyYy5kZW1vLmF2aS5sb2NhbDBJBgNVHR8EQjBAMD6g
+            PKA6hjhodHRwczovL3JjLWxpbnV4LXV0aWxzLnJjLmRlbW8uYXZpLmxvY2FsOjgy
+            MDAvdjEvcGtpL2NybDANBgkqhkiG9w0BAQsFAAOCAQEAMBYBYCKx4oAF0BccJePO
+            wYFqDcJd6o/h2mJ7zvpmRgPxDFyIC7+GYiI305Z5/D1pAGDwMJ2xKUXxupsi53oj
+            exiXgDQlOwhnlnXHAA4qjR3EmlIY9FbDknszZRn+1ZAeOLPqWb0p7gur0lou7VGD
+            /erX0AuosVgQpRRO4xDDjMf7vXjZagMmmD+aOaiANIHm8aNY8e6AB9CLimnUjH35
+            4f+7CDvXADtRjiipXu5sWY3qrqGJeNd3nZ/e2eldq/aPZ/oARyiW2EYY2XZOz24j
+            ccfrJdyc7HDO8N6vRHThzL+/R0MjgyOkTFIo5ZTtJVf9mqyA8kmqy05szXlHaU0R
+            ZA==
+            -----END CERTIFICATE-----
+        key_params:
+          algorithm: "SSL_KEY_ALGORITHM_RSA"
+          rsa_params:
+            key_size: "SSL_KEY_2048_BITS"
+            exponent: 65537
+        format: SSL_PEM
+    - name: "Create ControlScript"
+      vmware.alb.avi_alertscriptconfig:
+        avi_credentials: "{{ avi_credentials }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        name: "Vault-Cert-Management-Script"
+        action_script: |
+          #!/usr/bin/python
+
+          import os
+          import sys
+          import requests
+          try:
+              from requests.exceptions import JSONDecodeError
+          except ImportError:
+              from simplejson.errors import JSONDecodeError
+          from tempfile import NamedTemporaryFile
+
+          PARAMS_ERROR = 1
+          REMOTE_API_ERROR = 2
+          REQUESTS_ERROR = 3
+          TEMP_FILE_ERROR = 4
+
+
+          def certificate_request(csr, common_name, args_dict):
+              if 'vault_addr' not in args_dict:
+                  sys.stderr.write('Vault API Root Address (vault_addr) not specified')
+                  sys.exit(PARAMS_ERROR)
+
+              if 'vault_token' not in args_dict:
+                  sys.stderr.write('Vault Token (vault_token) not specified')
+                  sys.exit(PARAMS_ERROR)
+
+              if 'vault_path' not in args_dict:
+                  sys.stderr.write('Vault Sign API Path (vault_path) not specified')
+                  sys.exit(PARAMS_ERROR)
+
+              vault_addr = args_dict['vault_addr']
+              vault_token = args_dict['vault_token']
+              vault_path = args_dict['vault_path']
+              vault_namespace = args_dict.get('vault_namespace', None)
+              verify_endpoint = args_dict.get('verify_endpoint', None)
+              api_timeout = args_dict.get('api_timeout', 20)
+
+              headers = {'X-Vault-Token': vault_token}
+              if vault_namespace:
+                  headers['X-Vault-Namespace'] = vault_namespace
+
+              url = f'{vault_addr}{vault_path}'
+              api_data = {
+                  'common_name': common_name,
+                  'csr': csr
+              }
+
+              ca_file = False
+
+              try:
+                  if verify_endpoint:
+                      try:
+                          with NamedTemporaryFile(delete=False) as tf:
+                              ca_file = tf.name
+                              sys.stdout.write(f'CA certificate written to {ca_file}')
+                              tf.write(bytes(verify_endpoint, 'utf-8'))
+
+                      except Exception as e:
+                          sys.stderr.write(str(e))
+                          sys.exit(TEMP_FILE_ERROR)
+
+                  requests.packages.urllib3.disable_warnings()
+                  r = requests.post(url, headers=headers, json=api_data,
+                                    verify=ca_file, timeout=api_timeout)
+
+                  if r.status_code >= 400:
+                      try:
+                          r_errors = ' | '.join(r.json()['errors'])
+                      except (JSONDecodeError, KeyError):
+                          r_errors = r.text
+
+                      sys.stderr.write(f'Error from Vault API: {r_errors}')
+                      sys.exit(REMOTE_API_ERROR)
+
+                  try:
+                      r_data = r.json()
+                      certificate = r_data['data']['certificate']
+                  except (JSONDecodeError, KeyError):
+                      r_data = f'{r.text[:50]} +...' if len(r.text) > 50 else r.text
+                      sys.stderr.write(f'Vault API returned incorrect response: {r_data}')
+                      sys.exit(REMOTE_API_ERROR)
+
+              except Exception as e:
+                  sys.stderr.write(f'Error during request: {str(e)}')
+                  sys.exit(REQUESTS_ERROR)
+
+              finally:
+                  if ca_file and os.path.exists(ca_file):
+                      os.remove(ca_file)
+
+              return certificate
+      register: ctrl_script
+    - name: "Create Cert Management Profile"
+      vmware.alb.avi_certificatemanagementprofile:
+        avi_credentials: "{{ avi_credentials }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        name: "Vault-Certificate-Management"
+        run_script_ref: "{{ ctrl_script.obj.url }}"
+        script_params:
+          - is_dynamic: false
+            is_sensitive: false
+            name: "vault_addr"
+            value: "https://rc-linux-utils.rc.demo.avi.local:8200"
+          - is_dynamic: false
+            is_sensitive: true
+            name: "vault_token"
+            value: "{{ vault_token }}"
+          - is_dynamic: false
+            is_sensitive: false
+            name: "vault_path"
+            value: "/v1/pki_int/sign/rc-demo-avi-local"
+          - is_dynamic: false
+            is_sensitive: false
+            name: "verify_endpoint"
+            value: |
+              -----BEGIN CERTIFICATE-----
+              MIICLTCCAdOgAwIBAgIQGXp37KqZ6rFIfgLPJKD7wDAKBggqhkjOPQQDAjBvMRUw
+              EwYKCZImiZPyLGQBGRYFbG9jYWwxEzARBgoJkiaJk/IsZAEZFgNhdmkxFDASBgoJ
+              kiaJk/IsZAEZFgRkZW1vMRIwEAYKCZImiZPyLGQBGRYCcmMxFzAVBgNVBAMTDlJD
+              LUxBQkNBLUVDRFNBMB4XDTE4MDEwMzE0NDE1NloXDTQzMDEwMzE0NTE1NVowbzEV
+              MBMGCgmSJomT8ixkARkWBWxvY2FsMRMwEQYKCZImiZPyLGQBGRYDYXZpMRQwEgYK
+              CZImiZPyLGQBGRYEZGVtbzESMBAGCgmSJomT8ixkARkWAnJjMRcwFQYDVQQDEw5S
+              Qy1MQUJDQS1FQ0RTQTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABEp+rNLyOFAt
+              eLVu3hexDWGxDJ0WV3ssUm/jfTn9o3usQgWTMRONI1/lgF8fKKiRwQW1lSfLaabK
+              h6hNqdEgWRyjUTBPMAsGA1UdDwQEAwIBhjAPBgNVHRMBAf8EBTADAQH/MB0GA1Ud
+              DgQWBBS4VEYluU4PBzDVkVLupZlIJxxZMDAQBgkrBgEEAYI3FQEEAwIBADAKBggq
+              hkjOPQQDAgNIADBFAiEA3iqwIFGDfIklwC+IVhdtWezcb6fMTrBMOuCibwFWhaAC
+              IGokgObFqzqetbZiPubvJlUwnWQPwhYDRXuqxTTpnfGv
+              -----END CERTIFICATE-----
