@@ -1,0 +1,62 @@
+---
+- name: "Configure GSLB Sites"
+  hosts: "localhost"
+  connection: "local"
+  vars_files:
+    - "generic.yml"
+  tasks:
+    - name: "Retrieve Cluster Configurations"
+      ansible.builtin.set_fact:
+        cluster_configs: |
+          {{ (cluster_configs | default({})) | combine({ item.key:
+            lookup("vmware.alb.avi",
+              avi_credentials={"controller": item.value.controller_address,
+                "username": gslb_account.name,
+                "password": gslb_account.password,
+                "api_version": gslb_account.api_version},
+                obj_type="cluster")}) }}
+      loop: "{{ gslb_sites | dict2items }}"
+
+    - name: "Collate Site Information"
+      ansible.builtin.include_tasks: collate_gslb_site_info.yml
+      loop: "{{ gslb_sites | dict2items }}"
+      loop_control:
+        loop_var: gslb_site
+
+    - name: "Create GSLB Site Configurations"
+      ansible.builtin.set_fact:
+        sites: |
+          {{ (sites | default([])) +
+            [{
+              "name": item.key,
+              "cluster_uuid": cluster_configs[item.key].uuid,
+              "ip_addresses": node_addresses[item.key],
+              "member_type": item.value.type,
+              "username": gslb_account.name,
+              "password": gslb_account.password,
+              "enabled": true,
+              "hm_shard_enabled": false,
+              "suspend_mode": false,
+              "dns_vses": dns_vses[item.key]
+            }] }}
+      loop: "{{ gslb_sites | dict2items }}"
+      loop_control:
+        index_var: site_num
+
+    - name: "Configure GSLB"
+      vmware.alb.avi_gslb:
+        avi_credentials:
+          controller: "{{ gslb_sites[gslb_leader_site].controller_address }}"
+          username: "{{ gslb_account.name }}"
+          password: "{{ gslb_account.password }}"
+          api_version: "{{ gslb_account.api_version }}"
+        tenant: '{{ avi_tenant | default("admin") }}'
+        name: "Default"
+        sites: "{{ sites }}"
+        dns_configs: "{{ gslb_dns_domains }}"
+        leader_cluster_uuid: "{{ cluster_configs[gslb_leader_site].uuid }}"
+        is_federated: true
+        replication_policy:
+          replication_mode: "REPLICATION_MODE_CONTINUOUS"
+        send_interval: 15
+        tenant_scoped: false

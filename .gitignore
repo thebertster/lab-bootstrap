@@ -1,4 +1,5 @@
 rc-controller-*.yml
+generic.yml
 sensitive*
 license.yml
 test*

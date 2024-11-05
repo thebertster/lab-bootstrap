@@ -1,0 +1,69 @@
+---
+- name: "Create GSLB Virtual Service"
+  hosts: "localhost"
+  connection: "local"
+  vars_files:
+    - "generic.yml"
+  vars:
+    gslb_pool_members: {}
+    service_groups: []
+  tasks:
+    - name: "Get Global GSLB Configuration"
+      ansible.builtin.set_fact:
+        gslb_config: |
+          {{
+            lookup("vmware.alb.avi",
+              avi_credentials={"controller": gslb_sites[gslb_leader_site].controller_address,
+                "username": gslb_account.name,
+                "password": gslb_account.password,
+                "api_version": gslb_account.api_version},
+                obj_type="gslb",
+                obj_name="Default")
+          }}
+        name: "Default"
+
+    - name: "Retrieve Site/Cluster UUIDs"
+      ansible.builtin.set_fact:
+        cluster_uuids: |
+          {{ (cluster_uuids | default({})) | combine({
+            item.name: item.cluster_uuid
+            })
+          }}
+      loop: "{{ gslb_config.sites + (gslb_config.third_party_sites | default([])) }}"
+
+    - name: "Resolve Avi Virtual Services"
+      ansible.builtin.set_fact:
+        gslb_pool_members: |
+          {{ gslb_pool_members | combine({ (item.1.site_name, item.1.vs_name):
+              lookup("vmware.alb.avi",
+                avi_credentials={"controller": gslb_sites[item.1.site_name].controller_address,
+                  "username": gslb_account.name,
+                  "password": gslb_account.password,
+                  "api_version": gslb_account.api_version},
+                obj_type="virtualservice",
+                obj_name=item.1.vs_name,
+                tenant=item.1.tenant | default("admin"),
+                params={"join": "vsvip_ref"}) }) }}
+      loop: "{{ gslb_service.groups | subelements('members', skip_missing=true) }}"
+      loop_control:
+        label: '{{ (item.0.name, item.1.site_name | default("Undefined Site"), item.1.vs_name | default("Non-VS Member")) }}'
+      when: (item.1.vs_name is defined and item.1.site_name is defined and
+             (item.1.site_name, item.1.vs_name) not in gslb_pool_members)
+
+    - name: "Create GSLB Service Groups"
+      ansible.builtin.include_tasks: collate_gslb_service_groups.yml
+      loop: "{{ gslb_service.groups }}"
+      loop_control:
+        loop_var: gslb_service_group
+
+    - name: "Create GSLB Service"
+      vmware.alb.avi_gslbservice:
+        avi_credentials:
+          controller: "{{ gslb_sites[gslb_leader_site].controller_address }}"
+          username: "{{ gslb_account.name }}"
+          password: "{{ gslb_account.password }}"
+          api_version: "{{ gslb_account.api_version }}"
+        name: "{{ gslb_service.name }}"
+        domain_names: "{{ gslb_service.fqdns }}"
+        pool_algorithm: "{{ gslb_service.algorithm }}"
+        groups: "{{ service_groups }}"

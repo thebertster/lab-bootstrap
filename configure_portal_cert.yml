@@ -16,3 +16,4 @@
         portal_configuration:
           sslkeyandcertificate_refs:
             - "/api/sslkeyandcertificate/?name=Wildcard-ECDSA-Cert-Portal"
+            - "/api/sslkeyandcertificate/?name=Wildcard-RSA-Cert-Portal"

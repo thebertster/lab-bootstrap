@@ -1,0 +1,37 @@
+# code: language=ansible
+---
+- name: "Set Facts"
+  ansible.builtin.set_fact:
+    service_group_members: []
+
+- name: "Check Service Group Members"
+  ansible.builtin.fail:
+    msg: "Pool Member must include either an IP Address or a Site Name and a VS Name"
+  loop: "{{ gslb_service_group.members }}"
+  when: not(item.ip is defined or (item.site_name is defined and item.vs_name is defined))
+
+- name: "Collate Service Group Members"
+  ansible.builtin.set_fact:
+    service_group_members: |
+      {{
+        service_group_members + [{
+          "cluster_uuid": cluster_uuids[item.site_name] if item.site_name is defined else None,
+          "vs_uuid": (gslb_pool_members[(item.site_name, item.vs_name)].uuid
+                      if (item.site_name is defined and item.vs_name is defined) else None),
+          "ip": (gslb_pool_members[(item.site_name, item.vs_name)].vsvip_ref_data.vip.0.ip_address
+                 if (item.site_name is defined and item.vs_name is defined and item.ip is not defined) else item.ip)
+        }]
+      }}
+  loop: "{{ gslb_service_group.members }}"
+
+- name: "Populate Service Group"
+  ansible.builtin.set_fact:
+    service_groups: |
+      {{ service_groups + [
+        {
+          "name": gslb_service_group.name,
+          "priority": gslb_service_group.priority | default(10),
+          "members": service_group_members,
+          "algorithm": gslb_service_group.algorithm | default("GSLB_ALGORITHM_ROUND_ROBIN")
+        }
+      ] }}

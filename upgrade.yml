@@ -9,7 +9,7 @@
       {{ build_path + upgrade_version + "/" + upgrade_build + "/controller" +
       ("_docker.tgz" if docker_controller is defined and docker_controller else ".pkg") }}
   tasks:
-    - name: "Checking if base image already uploaded to Controller..."
+    - name: "Checking if base image already uploaded to Controller"
       vmware.alb.avi_api_session:
         avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
@@ -21,7 +21,7 @@
       register: upgrade_image
       when: upgrade_version is defined
 
-    - name: "Uploading base image file to Controller..."
+    - name: "Uploading base image file to Controller"
       vmware.alb.avi_api_image:
         avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
@@ -30,7 +30,7 @@
         - upgrade_version is defined
         - upgrade_image.obj.count == 0
 
-    - name: "Checking if Controller patch image already uploaded to Controller..."
+    - name: "Checking if Controller patch image already uploaded to Controller"
       vmware.alb.avi_api_session:
         avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
@@ -42,7 +42,7 @@
           type: "IMAGE_TYPE_PATCH"
       register: controller_patch_image
       when: controller_patch_version is defined
-    - name: "Upload Controller patch file..."
+    - name: "Upload Controller patch file"
       vmware.alb.avi_api_image:
         avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
@@ -63,7 +63,7 @@
           type: "IMAGE_TYPE_PATCH"
       register: se_patch_image
       when: se_patch_version is defined
-    - name: "Upload SE patch file..."
+    - name: "Upload SE patch file"
       vmware.alb.avi_api_image:
         avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
@@ -72,7 +72,7 @@
         - se_patch_version is defined
         - se_patch_image.obj.count == 0
 
-    - name: "Getting base image ID..."
+    - name: "Getting base image ID"
       vmware.alb.avi_api_session:
         avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
@@ -84,7 +84,7 @@
       register: upgrade_image
       when:
         - upgrade_version is defined
-    - name: "Getting Controller patch image ID..."
+    - name: "Getting Controller patch image ID"
       vmware.alb.avi_api_session:
         avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
@@ -97,7 +97,7 @@
       register: controller_patch_image
       when:
         - controller_patch_version is defined
-    - name: "Getting SE patch image ID..."
+    - name: "Getting SE patch image ID"
       vmware.alb.avi_api_session:
         avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
@@ -111,7 +111,7 @@
       when:
         - se_patch_version is defined
 
-    - name: "Performing upgrade..."
+    - name: "Performing upgrade"
       vmware.alb.avi_api_session:
         avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"

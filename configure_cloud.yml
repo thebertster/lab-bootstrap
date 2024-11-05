@@ -42,11 +42,12 @@
           use_content_lib: "{{ cloud_config.use_content_lib | default(False) }}"
           content_lib: "{{ cloud_config.content_lib | default(omit) }}"
         vtype: "CLOUD_VCENTER"
+        mgmt_ip_v6_enabled: "{{ cloud_parameters.mgmt_ip_v6_enabled | default(omit) }}"
         ipam_provider_ref: "{{ ipamprovider.obj.url }}"
         dns_provider_ref: '{{ "/api/ipamdnsproviderprofile/?name=VMware-DNS-" + cloud_parameters.name if create_dns_provider else None }}'
       register: cloud
 
-    - name: "Wait for network sync for cloud to complete..."
+    - name: "Wait for network sync for cloud to complete"
       vmware.alb.avi_api_session:
         avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"

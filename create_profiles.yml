@@ -1,0 +1,42 @@
+---
+- name: "Create PHPSESSID Persistence Profile"
+  hosts: "localhost"
+  connection: "local"
+  vars_files:
+    - "generic.yml"
+  tasks:
+    - name: "Create PHPSESSID Persistence Profile"
+      vmware.alb.avi_applicationpersistenceprofile:
+        avi_credentials: "{{ avi_credentials }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        name: "Persist-PHPSESSID"
+        app_cookie_persistence_profile:
+          prst_hdr_name: "PHPSESSID"
+          timeout: 20
+        persistence_type: "PERSISTENCE_TYPE_APP_COOKIE"
+        server_hm_down_recovery: "HM_DOWN_PICK_NEW_SERVER"
+    - name: "Create Custom HTTP Application Profile"
+      vmware.alb.avi_applicationprofile:
+        avi_credentials: "{{ avi_credentials }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        name: "Standard-HTTPS-Profile"
+        type: "APPLICATION_PROFILE_TYPE_HTTP"
+        http_profile:
+          connection_multiplexing_enabled: true
+          detect_ntlm_app: true
+          enable_chunk_merge: true
+          hsts_enabled: false
+          http_to_https: true
+          httponly_enabled: true
+          secure_cookie_enabled: true
+          server_side_redirect_to_https: true
+          true_client_ip:
+            direction: "LEFT"
+            headers:
+              - "X-Forwarded-For"
+            index_in_header: 1
+          use_true_client_ip: true
+          websockets_enabled: true
+          x_forwarded_proto_enabled: true
+          xff_enabled: true
+          xff_update: "APPEND_TO_THE_XFF_HEADER"

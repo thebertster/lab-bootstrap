@@ -7,15 +7,15 @@
   tasks:
     - name: "Enumerate Virtual Services"
       ansible.builtin.set_fact:
-        virtual_services: '{{ lookup("vmware.alb.avi", avi_credentials=avi_credentials, obj_type="virtualservice", params="fields=name", wantlist=true) }}'
+        virtual_services: '{{ lookup("vmware.alb.avi", avi_credentials=avi_credentials, obj_type="virtualservice", params={"fields": "name"}, wantlist=true) }}'
 
     - name: "Enumerate VsVips"
       ansible.builtin.set_fact:
-        vs_vips: '{{ lookup("vmware.alb.avi", avi_credentials=avi_credentials, obj_type="vsvip", params="fields=name", wantlist=true) }}'
+        vs_vips: '{{ lookup("vmware.alb.avi", avi_credentials=avi_credentials, obj_type="vsvip", params={"fields": "name"}, wantlist=true) }}'
 
     - name: "Enumerate Pools"
       ansible.builtin.set_fact:
-        pools: '{{ lookup("vmware.alb.avi", avi_credentials=avi_credentials, obj_type="pool", params="fields=name", wantlist=true) }}'
+        pools: '{{ lookup("vmware.alb.avi", avi_credentials=avi_credentials, obj_type="pool", params={"fields": "name"}, wantlist=true) }}'
 
     - name: "Delete Virtual Services"
       vmware.alb.avi_virtualservice:

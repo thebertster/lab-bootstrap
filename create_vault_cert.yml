@@ -1,0 +1,39 @@
+---
+- name: "Create CSR for Vault Certificate"
+  hosts: "localhost"
+  connection: "local"
+  vars_files:
+    - "generic.yml"
+
+  tasks:
+    - name: "Create CSR"
+      vmware.alb.avi_sslkeyandcertificate:
+        avi_credentials: "{{ avi_credentials }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        name: '{{ "Vault-Cert-" + vs_parameters.name + "-" + cloud_parameters.name }}'
+        certificate:
+          self_signed: false
+          issuer: {}
+          subject:
+            common_name: "{{ vs_parameters.fqdn }}"
+            country: "GB"
+            organization: "VMware"
+          subject_alt_names:
+            - "{{ vs_parameters.fqdn }}"
+        key_params:
+          algorithm: "SSL_KEY_ALGORITHM_EC"
+          ec_params:
+            curve: "SSL_KEY_EC_CURVE_SECP256R1"
+        format: "SSL_PEM"
+        type: "SSL_CERTIFICATE_TYPE_VIRTUALSERVICE"
+        certificate_management_profile_ref: "/api/certificatemanagementprofile/?name=Vault-Certificate-Management"
+      register: vault_ssl_cert
+    - name: "Update Certificate in Virtual Service"
+      vmware.alb.avi_virtualservice:
+        avi_credentials: "{{ avi_credentials }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        avi_api_update_method: "patch"
+        avi_api_patch_op: "replace"
+        name: "{{ vs_parameters.name }}"
+        ssl_key_and_certificate_refs:
+          - "{{ vault_ssl_cert.obj.url }}"

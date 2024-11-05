@@ -1,6 +1,6 @@
 # code: language=ansible
 ---
-upgrade_version: "22.1.6"
+upgrade_version: "30.2.2"
 upgrade_build: "last-released"
 build_location: "rel-builds"
 # controller_patch_version: "22.1.4-2p1"

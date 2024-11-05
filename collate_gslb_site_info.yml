@@ -1,0 +1,45 @@
+# code: language=ansible
+---
+- name: "Initialize Facts"
+  ansible.builtin.set_fact:
+    site_dns_vses: []
+    site_node_addresses: []
+- name: "Retrive DNS Virtual Service Info"
+  ansible.builtin.set_fact:
+    site_dns_vses: |
+      {{
+        site_dns_vses + [
+          {
+            "dns_vs_uuid": lookup("vmware.alb.avi",
+              avi_credentials={"controller": gslb_site.value.controller_address,
+                "username": gslb_account.name,
+                "password": gslb_account.password,
+                "api_version": gslb_account.api_version},
+                obj_type="virtualservice",
+                obj_name=item.name,
+                params={"cloud_ref.name": item.cloud_name | default("Default-Cloud"),
+                  "fields": "uuid"}
+                )['uuid'],
+            "domain_names": item.value.domain_names | default(omit)
+          }
+        ]
+      }}
+  loop: "{{ gslb_site.value.dns_services }}"
+
+- name: "Retrive Node IPs (if standalone or no cluster VIP)"
+  ansible.builtin.set_fact:
+    site_node_addresses: "{{ site_node_addresses + [ item.ip ] }}"
+  loop: "{{ cluster_configs[gslb_site.key].nodes }}"
+  when: cluster_configs[gslb_site.key].virtual_ip is undefined
+
+- name: "Retrieve Cluster VIP (if configured)"
+  ansible.builtin.set_fact:
+    site_node_addresses:
+      - addr: "{{ cluster_configs[gslb_site.key].virtual_ip }}"
+        type: "V4"
+  when: cluster_configs[gslb_site.key].virtual_ip is defined
+
+- name: "Populate DNS Service Info for Site"
+  ansible.builtin.set_fact:
+    dns_vses: "{{ (dns_vses | default({})) | combine({ gslb_site.key: site_dns_vses}) }}"
+    node_addresses: "{{ (node_addresses | default({})) | combine({ gslb_site.key: site_node_addresses}) }}"

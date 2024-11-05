@@ -1,0 +1,46 @@
+---
+- name: "Configure Cluster"
+  hosts: "localhost"
+  connection: "local"
+  vars_files:
+    - "generic.yml"
+  vars:
+    controller_nodes_update: []
+
+  tasks:
+    - name: "Get Cluster Info"
+      ansible.builtin.set_fact:
+        cluster_config: '{{ lookup("vmware.alb.avi", avi_credentials=avi_credentials, obj_type="cluster") }}'
+      when: controller_nodes is defined
+
+    - name: "Update Cluster Info"
+      ansible.builtin.set_fact:
+        controller_nodes_update: "{{ controller_nodes_update + [cluster_config['nodes'][node] | combine(item)] }}"
+      loop: "{{ controller_nodes }}"
+      loop_control:
+        index_var: node
+      when: controller_nodes is defined
+
+    # May need to revisit this for creation of a cluster rather than a single node - may not be possible
+    # to add cluster nodes and specify static routes for them in a single call. Requires verification.
+
+    - name: "Configure Cluster"
+      vmware.alb.avi_cluster:
+        avi_credentials: "{{ avi_credentials }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        name: "{{ cluster_name }}"
+        virtual_ip: "{{ cluster_vip | default(omit) }}"
+        nodes: "{{ controller_nodes_update }}"
+      when: controller_nodes is defined
+
+    - name: "Wait for Controller/Cluster to restart"
+      ansible.builtin.uri:
+        url: '{{ "https://" + avi_credentials.controller + "/api/cluster/runtime" }}'
+        return_content: "yes"
+        validate_certs: "no"
+      delegate_to: "localhost"
+      register: result
+      until: "result.content.find('CLUSTER_UP') != -1"
+      retries: 20
+      delay: 30
+      when: controller_nodes is defined

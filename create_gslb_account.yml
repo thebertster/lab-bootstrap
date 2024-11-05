@@ -1,0 +1,21 @@
+---
+- name: "Create GSLB Service Account"
+  hosts: "localhost"
+  connection: "local"
+  vars_files:
+    - "generic.yml"
+    - "gslb_config.yml"
+
+  tasks:
+    - name: "Create GSLB Service Account"
+      vmware.alb.avi_user:
+        avi_credentials: "{{ avi_credentials }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        name: "{{ gslb_account.name }}"
+        obj_username: "{{ gslb_account.name }}"
+        obj_password: "{{ gslb_account.password }}"
+        user_profile_ref: "/api/useraccountprofile/?name=No-Lockout-User-Account-Profile"
+        access:
+          - all_tenants: true
+            role_ref: "/api/role/?name=System-Admin"
+        is_superuser: true

@@ -6,7 +6,7 @@
   vars:
     build_path: '{{ "/mnt/" + (build_location | default("builds")) + "/" }}'
   tasks:
-    - name: "Prepare environment..."
+    - name: "Prepare environment"
       ansible.builtin.tempfile:
         state: "directory"
         path: "~"
@@ -19,7 +19,7 @@
         src: '{{ build_path + controller_version + "/" + build_name + "/docker_install.tar.gz" }}'
         dest: "{{ tmp_dir.path }}"
 
-    - name: "Install Controller..."
+    - name: "Install Controller"
       ansible.builtin.expect:
         command: |
           {{ "./avi_baremetal_setup.py -c -cc " ~ controller_num_cpu + " -cm " ~ controller_mem + " -i " + ansible_default_ipv4.address
@@ -34,7 +34,7 @@
         path: "{{ tmp_dir.path }}"
         state: "absent"
 
-    - name: "Wait for Controller to be up..."
+    - name: "Wait for Controller to be up"
       ansible.builtin.uri:
         url: '{{ "https://" + ansible_default_ipv4.address | default(ansible_all_ipv4_addresses[0]) + "/api/cluster/runtime" }}'
         return_content: "yes"
@@ -65,7 +65,7 @@
   ansible.builtin.import_playbook: configure_dns.yml
 
 - name: "Create Persistence Profile"
-  ansible.builtin.import_playbook: create_persistence.yml
+  ansible.builtin.import_playbook: create_profiles.yml
 
 - name: "Create Virtual Service"
   ansible.builtin.import_playbook: create_vs.yml

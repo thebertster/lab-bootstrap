@@ -4,58 +4,56 @@ system_configuration:
   dns_configuration:
     search_domain: "rc.demo.internal"
     server_list:
-      - addr: "10.6.248.90"
+      - addr: "<ip>"
         type: "V4"
   ntp_configuration:
     ntp_servers:
       - server:
-          addr: "10.6.248.90"
+          addr: "<ip>"
           type: "V4"
   global_tenant_config:
     se_in_provider_context: true
     tenant_access_to_provider_se: true
     tenant_vrf: false
   backup_passphrase: '{{ avi_admin_password }}'
-  shared_certificates: true
 
 cloud_parameters:
   name: '{{ cloud_name | default("Default-Cloud") }}'
-  vcenter: "ams-cm2w1-vc1.ams.broadcom.net"
+  vcenter: "<vcenter>"
   username: "aviuser6"
-  password: "0kMDjR47rMBfpF66vX#"
-  datacenter: "ams-cm2w1-vc1"
-  datastore: "ams-cm2w1-vc1-c1-vsan"
-  cluster: "ams-cm2w1-vc1-c1"
-  management_network: "ams-cm2w1-nsx1-avi-66-69"
+  password: "{{ vcenter_password }}"
+  datacenter: "<datacenter>"
+  datastore: "<datastore>"
+  cluster: "<cluster>"
+  management_network: "<net>"
   management_ip_subnet:
     ip_addr:
-      addr: "100.66.69.0"
+      addr: "<net>"
       type: "V4"
     mask: 24
-  mgmt_ip_v6_enabled: false
-  management_gateway: "100.66.69.254"
-  controller_network: "ams-cm2w1-nsx1-avi-mgmt"
-  controller_folder: "SAs/Roberto/Controllers"
-  no_access_folder: "SAs/Roberto/SEs"
+  management_gateway: "<ip>"
+  controller_network: "<net>"
+  controller_folder: "Roberto/Controllers"
+  no_access_folder: "Roberto/SEs"
 
 vs_parameters:
-  name: "rc-demo"
-  fqdn: '{{ "rc-demo" + ("." + dns_config.service_domains[0].domain_name if (dns_config.service_domains|default([]))|length>0 else "") }}'
+  name: "rc-ansible-demo"
+  fqdn: '{{ "rc-ansible-demo" + ("." + dns_config.service_domains[0].domain_name if (dns_config.service_domains|default([]))|length>0 else "") }}'
   ipam_network_subnet:
     subnet:
       ip_addr:
         type: "V4"
-        addr: "100.66.66.0"
+        addr: "<net>"
       mask: 24
   pool_members:
     - ip:
-        addr: "100.66.67.201"
+        addr: "<ip>"
         type: "V4"
     - ip:
-        addr: "100.66.67.202"
+        addr: "<ip>"
         type: "V4"
     - ip:
-        addr: "100.66.67.203"
+        addr: "<ip>"
         type: "V4"
 
 ldap_parameters:
@@ -66,7 +64,7 @@ ldap_parameters:
   user_search_dn: "DC=rc,DC=demo,DC=internal"
   password: "{{ ldapbind_password }}"
   servers:
-    - "10.6.248.90"
+    - "<ip>"
   mapping_rules:
     - index: 1
       group_match:

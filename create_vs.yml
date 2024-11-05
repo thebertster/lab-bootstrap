@@ -10,7 +10,8 @@
       vmware.alb.avi_vsvip:
         avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
-        name: '{{ "vsvip-" + vs_parameters.name + "-" + cloud_parameters.name }}'
+        tenant: '{{ avi_tenant | default("admin") }}'
+        name: '{{ "vsvip-" + vs_parameters.name + "-" + cloud_parameters.name + ("-" + avi_tenant if avi_tenant is defined else "") }}'
         cloud_ref: '{{ "/api/cloud/?name=" + cloud_parameters.name }}'
         vip:
           - enabled: true
@@ -25,6 +26,7 @@
       vmware.alb.avi_pool:
         avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
+        tenant: '{{ avi_tenant | default("admin") }}'
         name: '{{ vs_parameters.name + "-pool" }}'
         lb_algorithm: "LB_ALGORITHM_ROUND_ROBIN"
         application_persistence_profile_ref: "/api/applicationpersistenceprofile/?name=Persist-PHPSESSID"
@@ -38,11 +40,12 @@
       vmware.alb.avi_virtualservice:
         avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
+        tenant: '{{ avi_tenant | default("admin") }}'
         name: "{{ vs_parameters.name }}"
         vsvip_ref: "{{ vsvip.obj.url }}"
         pool_ref: "{{ pool.obj.url }}"
         cloud_ref: '{{ "/api/cloud/?name=" + cloud_parameters.name }}'
-        application_profile_ref: "/api/applicationprofile/?name=System-Secure-HTTP"
+        application_profile_ref: "/api/applicationprofile/?name=Standard-HTTPS-Profile"
         services:
           - enable_ssl: false
             port: 80
@@ -54,7 +57,7 @@
         ssl_key_and_certificate_refs:
           - "/api/sslkeyandcertificate/?name=Wildcard-ECDSA-Cert"
           - "/api/sslkeyandcertificate/?name=Wildcard-RSA-Cert"
-        ssl_profile_ref: "/api/sslprofile/?name=System-Standard"
+        ssl_profile_ref: "/api/sslprofile/?name=System-Standard-PFS"
         analytics_policy:
           all_headers: true
           client_insights: NO_INSIGHTS

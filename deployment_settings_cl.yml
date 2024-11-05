@@ -1,8 +1,7 @@
 # code: language=ansible
 ---
-build_location: "builds"
-controller_version: "30.2.2"
-build_name: "last-built "
+content_library: "image-library"
+template_name: "controller-30.2.2-9108"
 controller_num_cpu: 6
 controller_mem: 32
 controller_disk: 160
