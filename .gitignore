@@ -1,5 +1,11 @@
 rc-controller-*.yml
-generic.yml
+satam-*.yml
+vegas*.yml
+site_*.yml
+!site_template.yml
+gslb_*.yml
+!gslb_template.yml
 sensitive*
 license.yml
 test*
+archive/**

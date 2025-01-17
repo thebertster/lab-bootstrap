@@ -4,7 +4,7 @@
   collections:
     - vmware.alb
   vars_files:
-    - "generic.yml"
+    - '{{ "site_" + deployment_site + ".yml" }}'
 
   tasks:
     - name: "Delete VirtualService"

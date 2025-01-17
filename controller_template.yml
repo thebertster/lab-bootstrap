@@ -1,0 +1,65 @@
+# code: language=ansible
+---
+deployment_site: "<site>"
+avi_admin_password: "<password>"
+avi_default_password: "<password>"
+vcenter_password: "<password>"
+ldapbind_password: "{{ avi_admin_password }}"
+
+avi_credentials:
+  controller: "<ip>"
+  username: "admin"
+  password: "{{ avi_admin_password }}"
+  api_version: "<version>"
+
+cloud_config:
+  use_content_lib: true
+  content_lib:
+    name: "<name>"
+    id: "<id>"
+
+ipam_config:
+  - name: "<pgname>"
+    addr: "<subnet>"
+    mask: 24
+    static_ip_ranges:
+      - range:
+          begin:
+            addr: "<ip>"
+            type: "V4"
+          end:
+            addr: "<ip>"
+            type: "V4"
+    add_to_ipam: true
+
+dns_config:
+  service_domains:
+    - domain_name: "vs.lab.internal"
+  auth_domains:
+    - domain_name: "vs.lab.internal"
+      name_server: "dns1.lab.internal"
+      admin_email: "hostmaster@lab.internal"
+  valid_domains:
+    - "vs.lab.internal"
+  dns_vip: "<vip>"
+  dns_vs_name: "<name>"
+
+seg_config:
+  - name: "Default-Group"
+    max_vs_per_se: 100
+    max_se: 5
+    vcpus_per_se: 1
+    memory_per_se: 2048
+    disk_per_se: 15
+    se_name_prefix: "avi"
+    vcenter_folder: "SEs"
+    vcenter_clusters:
+      host_refs:
+        - "<host>"
+      include: true
+    cpu_reserve: false
+    mem_reserve: false
+    ha_mode: "HA_MODE_SHARED"
+    algo: "PLACEMENT_ALGO_PACKED"
+    buffer_se: 0
+    se_deprovision_delay: 5

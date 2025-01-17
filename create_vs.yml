@@ -3,7 +3,16 @@
   hosts: "localhost"
   connection: "local"
   vars_files:
-    - "generic.yml"
+    - '{{ "site_" + deployment_site + ".yml" }}'
+  vars:
+    header_modification_actions:
+      - action: "HTTP_ADD_HDR"
+        hdr_index: 1
+        hdr:
+          name: "X-Forwarded-Host"
+          value:
+            var: "HTTP_POLICY_VAR_HTTP_HDR"
+            val: "$http_host"
 
   tasks:
     - name: "Create VSVip"
@@ -36,6 +45,36 @@
         cloud_ref: '{{ "/api/cloud/?name=" + cloud_parameters.name }}'
       register: pool
 
+    - name: "Add Header Modification Actions for GSLB Site"
+      ansible.builtin.set_fact:
+        header_modification_actions: |
+          {{ header_modification_actions +
+            [{"action": "HTTP_ADD_HDR",
+              "hdr_index": 2,
+              "hdr": {
+                "name": "X-Avi-Site",
+                "value": {
+                  "val": gslb_site_name
+                }
+              }
+             }]
+          }}
+      when: gslb_site_name is defined
+
+    - name: "Create HTTP PolicySet"
+      vmware.alb.avi_httppolicyset:
+        avi_credentials: "{{ avi_credentials }}"
+        api_context: "{{ avi_api_context | default(omit) }}"
+        tenant: '{{ avi_tenant | default("admin") }}'
+        name: '{{ vs_parameters.name + "-" + cloud_parameters.name + "-HTTP-PolicySet-0" }}'
+        http_request_policy:
+          rules:
+            - name: "Header Modifications"
+              index: 1
+              enable: true
+              hdr_action: "{{ header_modification_actions }}"
+      register: http_policy_set
+
     - name: "Create Virtual Service"
       vmware.alb.avi_virtualservice:
         avi_credentials: "{{ avi_credentials }}"
@@ -46,6 +85,7 @@
         pool_ref: "{{ pool.obj.url }}"
         cloud_ref: '{{ "/api/cloud/?name=" + cloud_parameters.name }}'
         application_profile_ref: "/api/applicationprofile/?name=Standard-HTTPS-Profile"
+        error_page_profile_ref: "/api/errorpageprofile/?name=Standard-Error-Page-Profile"
         services:
           - enable_ssl: false
             port: 80
@@ -54,6 +94,9 @@
         enabled: true
         enable_rhi: "{{ vs_parameters.rhi | default(omit) }}"
         se_group_ref: "/api/serviceenginegroup/?name=Default-Group"
+        http_policies:
+          - http_policy_set_ref: "{{ http_policy_set.obj.url }}"
+            index: 11
         ssl_key_and_certificate_refs:
           - "/api/sslkeyandcertificate/?name=Wildcard-ECDSA-Cert"
           - "/api/sslkeyandcertificate/?name=Wildcard-RSA-Cert"

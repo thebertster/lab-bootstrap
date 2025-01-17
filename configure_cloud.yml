@@ -3,7 +3,7 @@
   hosts: "localhost"
   connection: "local"
   vars_files:
-    - "generic.yml"
+    - '{{ "site_" + deployment_site + ".yml" }}'
   vars:
     usable_networks: []
     create_dns_provider: "{{ (dns_config.service_domains|default([]))|length>0 }}"

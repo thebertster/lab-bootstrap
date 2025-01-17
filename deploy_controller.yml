@@ -3,7 +3,7 @@
   hosts: all
   vars_files:
     - "deployment_settings.yml"
-    - "generic.yml"
+    - '{{ "site_" + deployment_site + ".yml" }}'
   vars:
     build_path: '{{ "/mnt/" + (build_location | default("builds")) + "/" }}'
   tasks:

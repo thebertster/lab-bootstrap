@@ -3,7 +3,7 @@
   hosts: "localhost"
   connection: "local"
   vars_files:
-    - "generic.yml"
+    - '{{ "site_" + deployment_site + ".yml" }}'
 
   tasks:
     - name: "Create DNS VSVip"
@@ -61,6 +61,15 @@
         network_profile_ref: "/api/networkprofile/?name=System-UDP-Per-Pkt"
         enabled: true
         se_group_ref: "/api/serviceenginegroup/?name=GSLB-Group"
+        analytics_policy:
+          all_headers: false
+          client_insights: NO_INSIGHTS
+          full_client_logs:
+            duration: 0
+            enabled: true
+            throttle: 20
+          metrics_realtime_update:
+            enabled: false
       register: dnsvs
 
     - name: "Set System DNS VS Configuration"

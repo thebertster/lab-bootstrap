@@ -4,7 +4,7 @@
   connection: "local"
   vars_files:
     - "deployment_settings_cl.yml"
-    - "generic.yml"
+    - '{{ "site_" + deployment_site + ".yml" }}'
   tasks:
     - name: "Deploy Avi Controller VM"
       community.vmware.vmware_content_deploy_ovf_template:

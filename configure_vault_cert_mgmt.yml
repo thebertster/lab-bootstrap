@@ -3,8 +3,7 @@
   hosts: "localhost"
   connection: "local"
   vars_files:
-    - "generic.yml"
-    - "sensitive_vault.yml"
+    - '{{ "site_" + deployment_site + ".yml" }}'
 
   tasks:
     - name: "Create Vault CA Certificate"
@@ -49,29 +48,29 @@
         certificate:
           certificate: |
             -----BEGIN CERTIFICATE-----
-            MIID7TCCAtWgAwIBAgIUPF9aCMn9Q+BfisgJg6MsjQit0P0wDQYJKoZIhvcNAQEL
-            BQAwEzERMA8GA1UEAxMIVmF1bHQgQ0EwHhcNMjQwMzI4MTIyNTIwWhcNMjkwMzI3
-            MTIyNTUwWjAgMR4wHAYDVQQDExVWYXVsdCBJbnRlcm1lZGlhdGUgQ0EwggEiMA0G
-            CSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCg2kO9xO83bMlBCjpItvoyf6XOvqiV
-            i08tTmDITWT8Tte0lkMBsieR3XDwyYYYVikynLPNvWxeoMI1ehz9w28tvWBPDtXX
-            DDkiuEklVLsQ9fuCqb+iqNt6zSgEtAx7lDwpfrJHiE1R9S46+Iii1YXOOy+clC7t
-            eqgY/0az5I3MA5NkKGe4zmRshdxXi0cqFi/Zs/5NmPT9ki3W4/XE5KZNW+nJPGse
-            nLIjV5SrBITo7XE8DnQEBadLPrXDnBE+1gbOLB9/FpxcRdS1FpgvD2OHo5pkXBgs
-            JjZmoXYkC/iaZVPA8QCLw+qtTqy1JPuJKrFLgYj0x7O6tQQ7NPz0nN5TAgMBAAGj
-            ggEqMIIBJjAOBgNVHQ8BAf8EBAMCAQYwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4E
-            FgQUdZB4R9eSKbKQJhy6DmA5sUYFM/4wHwYDVR0jBBgwFoAUMK8WWXGYYHMOqnFr
-            W4dL4TVaMa0wUwYIKwYBBQUHAQEERzBFMEMGCCsGAQUFBzAChjdodHRwczovL3Jj
-            LWxpbnV4LXV0aWxzLnJjLmRlbW8uYXZpLmxvY2FsOjgyMDAvdjEvcGtpL2NhMCMG
-            A1UdHgEB/wQZMBegFTATghFyYy5kZW1vLmF2aS5sb2NhbDBJBgNVHR8EQjBAMD6g
-            PKA6hjhodHRwczovL3JjLWxpbnV4LXV0aWxzLnJjLmRlbW8uYXZpLmxvY2FsOjgy
-            MDAvdjEvcGtpL2NybDANBgkqhkiG9w0BAQsFAAOCAQEAMBYBYCKx4oAF0BccJePO
-            wYFqDcJd6o/h2mJ7zvpmRgPxDFyIC7+GYiI305Z5/D1pAGDwMJ2xKUXxupsi53oj
-            exiXgDQlOwhnlnXHAA4qjR3EmlIY9FbDknszZRn+1ZAeOLPqWb0p7gur0lou7VGD
-            /erX0AuosVgQpRRO4xDDjMf7vXjZagMmmD+aOaiANIHm8aNY8e6AB9CLimnUjH35
-            4f+7CDvXADtRjiipXu5sWY3qrqGJeNd3nZ/e2eldq/aPZ/oARyiW2EYY2XZOz24j
-            ccfrJdyc7HDO8N6vRHThzL+/R0MjgyOkTFIo5ZTtJVf9mqyA8kmqy05szXlHaU0R
-            ZA==
+            MIIDxTCCAq2gAwIBAgIUfxm04C5wI0I1TIkyG4Q9G8HoXZEwDQYJKoZIhvcNAQEL
+            BQAwEzERMA8GA1UEAxMIVmF1bHQgQ0EwHhcNMjUwMTE3MTI0ODAxWhcNMzAwMTE2
+            MTI0ODMxWjAgMR4wHAYDVQQDExVWYXVsdCBJbnRlcm1lZGlhdGUgQ0EwggEiMA0G
+            CSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCc8j4F2uR6kCR6OkBof8SZeHtTRdwW
+            XiM97joGnh9FMeDD6lnaKf2d2vzjcfAAji5siBRowsbQz2ZAmiMyPQuvNHaUf5d1
+            snthukSR0h8zlGFpvXwKQz4NkE2kXbAqeeAzCfJWEBBXa0fnjYsk7fF4UCcGVsvD
+            7P/ny5LKFc2FYNoovIEOOWKQF87zFztzqH7Iaushxs++FE29XcNh52LERm5qqqtN
+            V5e7X/cePRbDgHZ2nnmAo3FkqMAFb5Mg+zD4kJBUOIS0HU6Ml35GhqsKbCCjRVM9
+            9ykUxtSKCq5gfbTDAHhKCZNU5uDwV4NaQkQ/5F09T0EcXghsErsS4yZNAgMBAAGj
+            ggECMIH/MA4GA1UdDwEB/wQEAwIBBjAPBgNVHRMBAf8EBTADAQH/MB0GA1UdDgQW
+            BBT3ileCvhjsBvqzTmRCC3B+QNkDJzAfBgNVHSMEGDAWgBQwrxZZcZhgcw6qcWtb
+            h0vhNVoxrTBSBggrBgEFBQcBAQRGMEQwQgYIKwYBBQUHMAKGNmh0dHBzOi8vcmMt
+            bGludXgtdXRpbHMucmMuZGVtby5pbnRlcm5hbDo4MjAwL3YxL3BraS9jYTBIBgNV
+            HR8EQTA/MD2gO6A5hjdodHRwczovL3JjLWxpbnV4LXV0aWxzLnJjLmRlbW8uaW50
+            ZXJuYWw6ODIwMC92MS9wa2kvY3JsMA0GCSqGSIb3DQEBCwUAA4IBAQAk3+q7TEpT
+            HuKn00GyxeYBe8j8wVZ2mWgrgurboi70mh5NwFoQE88G0ZiTS3cCkJ0INH9MfLkM
+            Ac+AT/NeoQLQUr6u/1+jemoSK0xpJGc7b4cJdTGWiCWEqrYUTLaxu5oD2suRHB8j
+            WMzpvlvk23jAYSO0UMyo5R9LAxpKhxysMDHG4jCKvsDGeJo6UiBP9cXmEYvlDuTH
+            XwicB9w8p4eNYbcDD0vTEb3sMXPtmDv5/JBUInlA/yBO64kszAQk7OZ2gi+ylMEG
+            +ttgIy0ugShwChsrg4tLhuNkevA6bsOx+yRnltkvV7CRGIeR1qkc8XXlHQMFX1+O
+            ChOS3Gm1jAew
             -----END CERTIFICATE-----
+
         key_params:
           algorithm: "SSL_KEY_ALGORITHM_RSA"
           rsa_params:
@@ -186,30 +185,29 @@
           - is_dynamic: false
             is_sensitive: false
             name: "vault_addr"
-            value: "https://rc-linux-utils.rc.demo.avi.local:8200"
+            value: "{{ vault_parameters.vault_address }}"
           - is_dynamic: false
             is_sensitive: true
             name: "vault_token"
-            value: "{{ vault_token }}"
+            value: "{{ vault_parameters.vault_token }}"
           - is_dynamic: false
             is_sensitive: false
             name: "vault_path"
-            value: "/v1/pki_int/sign/rc-demo-avi-local"
+            value: "{{ vault_parameters.vault_path }}"
           - is_dynamic: false
             is_sensitive: false
             name: "verify_endpoint"
             value: |
               -----BEGIN CERTIFICATE-----
-              MIICLTCCAdOgAwIBAgIQGXp37KqZ6rFIfgLPJKD7wDAKBggqhkjOPQQDAjBvMRUw
-              EwYKCZImiZPyLGQBGRYFbG9jYWwxEzARBgoJkiaJk/IsZAEZFgNhdmkxFDASBgoJ
-              kiaJk/IsZAEZFgRkZW1vMRIwEAYKCZImiZPyLGQBGRYCcmMxFzAVBgNVBAMTDlJD
-              LUxBQkNBLUVDRFNBMB4XDTE4MDEwMzE0NDE1NloXDTQzMDEwMzE0NTE1NVowbzEV
-              MBMGCgmSJomT8ixkARkWBWxvY2FsMRMwEQYKCZImiZPyLGQBGRYDYXZpMRQwEgYK
-              CZImiZPyLGQBGRYEZGVtbzESMBAGCgmSJomT8ixkARkWAnJjMRcwFQYDVQQDEw5S
-              Qy1MQUJDQS1FQ0RTQTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABEp+rNLyOFAt
-              eLVu3hexDWGxDJ0WV3ssUm/jfTn9o3usQgWTMRONI1/lgF8fKKiRwQW1lSfLaabK
-              h6hNqdEgWRyjUTBPMAsGA1UdDwQEAwIBhjAPBgNVHRMBAf8EBTADAQH/MB0GA1Ud
-              DgQWBBS4VEYluU4PBzDVkVLupZlIJxxZMDAQBgkrBgEEAYI3FQEEAwIBADAKBggq
-              hkjOPQQDAgNIADBFAiEA3iqwIFGDfIklwC+IVhdtWezcb6fMTrBMOuCibwFWhaAC
-              IGokgObFqzqetbZiPubvJlUwnWQPwhYDRXuqxTTpnfGv
+              MIIB/zCCAaWgAwIBAgIQYUcGIH8S175HYqlfsZj4uzAKBggqhkjOPQQDAjBYMRgw
+              FgYKCZImiZPyLGQBGRYIaW50ZXJuYWwxFDASBgoJkiaJk/IsZAEZFgRkZW1vMRIw
+              EAYKCZImiZPyLGQBGRYCcmMxEjAQBgNVBAMTCVJDLUxBQi1DQTAeFw0yNDEwMTkw
+              MDA3MzVaFw0zNDEwMTkwMDE3MzVaMFgxGDAWBgoJkiaJk/IsZAEZFghpbnRlcm5h
+              bDEUMBIGCgmSJomT8ixkARkWBGRlbW8xEjAQBgoJkiaJk/IsZAEZFgJyYzESMBAG
+              A1UEAxMJUkMtTEFCLUNBMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE2coDhtNF
+              7Gb9dDRLv2aMiSTy/5tz9ACmCDfAZAajtGJ9SwrbcSArrJ5ZVeDERiT5DysRk1IG
+              Zxjw45ZcyLYyD6NRME8wCwYDVR0PBAQDAgGGMA8GA1UdEwEB/wQFMAMBAf8wHQYD
+              VR0OBBYEFJBUB37lU+Y0CD5d+Nm2lN+tGSfbMBAGCSsGAQQBgjcVAQQDAgEAMAoG
+              CCqGSM49BAMCA0gAMEUCIQDzIvATDDcmvNUwviNlWQuKDH4+v3D+BBXSPY7gDInc
+              rgIgXo9OlJQc7xOmP3Qud5yKTKbTOSiVTtumaUuBVAZC+Yc=
               -----END CERTIFICATE-----

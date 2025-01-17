@@ -3,7 +3,7 @@
   hosts: "localhost"
   connection: "local"
   vars_files:
-    - "generic.yml"
+    - '{{ "site_" + deployment_site + ".yml" }}'
   vars:
     gslb_pool_members: {}
     service_groups: []
@@ -65,5 +65,7 @@
           api_version: "{{ gslb_account.api_version }}"
         name: "{{ gslb_service.name }}"
         domain_names: "{{ gslb_service.fqdns }}"
-        pool_algorithm: "{{ gslb_service.algorithm }}"
+        pool_algorithm: "{{ gslb_service.algorithm | default(omit) }}"
+        down_response: "{{ gslb_service.down_response | default(omit) }}"
         groups: "{{ service_groups }}"
+        health_monitor_refs: "{{ gslb_service.health_monitor_refs | default(omit) }}"

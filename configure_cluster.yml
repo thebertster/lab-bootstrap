@@ -3,7 +3,7 @@
   hosts: "localhost"
   connection: "local"
   vars_files:
-    - "generic.yml"
+    - '{{ "site_" + deployment_site + ".yml" }}'
   vars:
     controller_nodes_update: []
 

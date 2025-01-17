@@ -1,0 +1,51 @@
+# code: language=ansible
+---
+deployment_site: "<site>" # Lab environment where GSLB is being configured, not GSLB site name!
+gslb_sites:
+  "Site1":
+    controller_address: "<ip>"
+    dns_services:
+      - name: "dns1.rc.demo.internal"
+    type: "GSLB_ACTIVE_MEMBER"
+  "Site2":
+    controller_address: "<ip>"
+    dns_services:
+      - name: "dns2.rc.demo.internal"
+    type: "GSLB_ACTIVE_MEMBER"
+  "Site3":
+    controller_address: "<ip>"
+    dns_services:
+      - name: "dns3.rc.demo.internal"
+    type: "GSLB_ACTIVE_MEMBER"
+
+gslb_leader_site: "Site1"
+
+gslb_dns_domains:
+  - domain_name: "gslb.lab.internal"
+  - domain_name: "gslb2.lab.internal"
+
+gslb_account:
+  name: "gslbadmin"
+  password: "<password>"
+  api_version: "<version>"
+
+gslb_service:
+  name: "demo-gslb"
+  fqdns:
+    - "demo-gslb.gslb.lab.internal"
+  algorithm: "GSLB_SERVICE_ALGORITHM_PRIORITY"
+  health_monitor_refs:
+    - "/api/healthmonitor/?name=System-GSLB-HTTP"
+  down_response:
+    type: "GSLB_SERVICE_DOWN_RESPONSE_NONE"
+  groups:
+    - name: "demo-gslb-pool-1"
+      priority: 10
+      algorithm: "GSLB_ALGORITHM_ROUND_ROBIN"
+      members:
+        - vs_name: "<name>"
+          site_name: "Site1"
+        - vs_name: "<name>"
+          site_name: "Site2"
+        - vs_name: "<name>"
+          site_name: "Site3"

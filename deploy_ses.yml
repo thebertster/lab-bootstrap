@@ -2,7 +2,7 @@
 - name: "Deploy No Access Service Engines"
   hosts: all
   vars_files:
-    - "generic.yml"
+    - '{{ "site_" + deployment_site + ".yml" }}'
   tasks:
     - name: "Set some facts"
       ansible.builtin.set_fact:

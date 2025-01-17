@@ -1,5 +1,6 @@
 # code: language=ansible
 ---
+deployment_site: "<site>"
 system_configuration:
   dns_configuration:
     search_domain: "rc.demo.internal"
@@ -20,7 +21,7 @@ system_configuration:
 cloud_parameters:
   name: '{{ cloud_name | default("Default-Cloud") }}'
   vcenter: "<vcenter>"
-  username: "aviuser6"
+  username: "xxxxx"
   password: "{{ vcenter_password }}"
   datacenter: "<datacenter>"
   datastore: "<datastore>"
@@ -33,12 +34,12 @@ cloud_parameters:
     mask: 24
   management_gateway: "<ip>"
   controller_network: "<net>"
-  controller_folder: "Roberto/Controllers"
-  no_access_folder: "Roberto/SEs"
+  controller_folder: "<folder>"
+  no_access_folder: "<folder>"
 
 vs_parameters:
-  name: "rc-ansible-demo"
-  fqdn: '{{ "rc-ansible-demo" + ("." + dns_config.service_domains[0].domain_name if (dns_config.service_domains|default([]))|length>0 else "") }}'
+  name: "ansible-demo"
+  fqdn: '{{ "ansible-demo" + ("." + dns_config.service_domains[0].domain_name if (dns_config.service_domains|default([]))|length>0 else "") }}'
   ipam_network_subnet:
     subnet:
       ip_addr:
@@ -58,10 +59,10 @@ vs_parameters:
 
 ldap_parameters:
   profile_name: "Controller-LDAP-Auth"
-  base_dn: "DC=rc,DC=demo,DC=internal"
-  admin_bind_dn: "CN=ldapbind,CN=Users,DC=rc,DC=demo,DC=internal"
-  group_search_dn: "DC=rc,DC=demo,DC=internal"
-  user_search_dn: "DC=rc,DC=demo,DC=internal"
+  base_dn: "<dn>"
+  admin_bind_dn: "<dn>"
+  group_search_dn: "<dn>"
+  user_search_dn: "<dn>"
   password: "{{ ldapbind_password }}"
   servers:
     - "<ip>"
@@ -70,5 +71,10 @@ ldap_parameters:
       group_match:
         criteria: "AUTH_MATCH_CONTAINS"
         groups:
-          - "Avi-Admins"
+          - "<group>"
       is_superuser: true
+
+vault_parameters:
+  vault_token: "<token>"
+  vault_address: "<address>"
+  vault_path: "/v1/<pki>/sign/<profile>"
