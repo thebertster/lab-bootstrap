@@ -14,7 +14,7 @@ See `site_template.yml` and `controller_template.yml` for templates for these tw
 
 For Pulse Register/De-register, need to obtain JSON Web Token. Log in to CSP org in a web browser, then browse to:
 
-https://portal.avipulse.vmware.com/portal/auth/cspacs?authmode=cspctrlsso
+https://portal.avipulse.vmware.com/portal/auth/broadcomtoken
 
 This will return an encrypted JWT that can then be used for the Controller registration/de-registration. The validity lifetime for the JWT is 1 year.
 

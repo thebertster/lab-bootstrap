@@ -2,6 +2,8 @@
 - name: "Register Controller with Pulse"
   hosts: "localhost"
   connection: "local"
+  vars_files:
+    - '{{ "site_" + deployment_site + ".yml" }}'
   tasks:
     - name: Pulse registration or deregistration
       vmware.alb.avi_pulse_registration:
