@@ -75,6 +75,9 @@
         default_license_tier: "{{ license_tier | default('ENTERPRISE') }}"
         admin_auth_configuration: "{{ admin_auth_configuration | default(omit) }}"
         enable_cors: true
+        telemetry_configuration: >-
+          {{ system_configuration.telemetry_configuration if system_configuration.telemetry_configuration is defined
+          and avi_credentials.api_version >= '31.1.1' else omit }}
 
     - name: "Configure backup passphrase"
       vmware.alb.avi_backupconfiguration:

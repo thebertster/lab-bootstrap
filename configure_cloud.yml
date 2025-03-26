@@ -16,6 +16,7 @@
         name: '{{ "VMware-IPAM-" + cloud_parameters.name }}'
         type: "IPAMDNS_TYPE_INTERNAL"
         allocate_ip_in_vrf: false
+        internal_profile: {}
       register: ipamprovider
 
     - name: "Create Avi DNS Provider"
@@ -42,7 +43,7 @@
           use_content_lib: "{{ cloud_config.use_content_lib | default(False) }}"
           content_lib: "{{ cloud_config.content_lib | default(omit) }}"
         vtype: "CLOUD_VCENTER"
-        mgmt_ip_v6_enabled: "{{ cloud_parameters.mgmt_ip_v6_enabled | default(omit) }}"
+        mgmt_ip_v6_enabled: "{{ (cloud_parameters.mgmt_ip_v6_enabled if avi_credentials.api_version >= '30.2' else omit) | default(omit) }}"
         ipam_provider_ref: "{{ ipamprovider.obj.url }}"
         dns_provider_ref: '{{ "/api/ipamdnsproviderprofile/?name=VMware-DNS-" + cloud_parameters.name if create_dns_provider else None }}'
       register: cloud
@@ -52,11 +53,9 @@
         avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         http_method: "get"
-        path: "cloudruntime"
-        params:
-          name: "{{ cloud_parameters.name }}"
+        path: "{{ 'cloudruntime/' + cloud.obj.uuid }}"
       register: cloudruntime
-      until: cloudruntime.obj.results[0].network_sync_complete
+      until: cloudruntime.obj.network_sync_complete
       retries: 30
       delay: 5
 

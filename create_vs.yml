@@ -43,6 +43,13 @@
           - "/api/healthmonitor/?name=System-HTTP"
         servers: "{{ vs_parameters.pool_members }}"
         cloud_ref: '{{ "/api/cloud/?name=" + cloud_parameters.name }}'
+        analytics_policy:
+          enable_realtime_metrics: >-
+            {{ vs_parameters.realtime_metrics if vs_parameters.realtime_metrics is defined and
+            avi_credentials.api_version < '31.1.1' else omit }}
+          metrics_realtime_update: >-
+            {{ {'duration': 0, 'enabled': vs_parameters.realtime_metrics}
+            if vs_parameters.realtime_metrics is defined and avi_credentials.api_version >= '31.1.1' else omit }}
       register: pool
 
     - name: "Add Header Modification Actions for GSLB Site"
@@ -106,7 +113,13 @@
           client_insights: NO_INSIGHTS
           full_client_logs:
             duration: 0
-            enabled: true
+            enabled: >-
+              {{ vs_parameters.non_sig_logs if vs_parameters.non_sig_logs is defined else
+              (vs_parameters.client_log_filters is defined and avi_credentials.api_version < '31.1.1') }}
             throttle: 10
           metrics_realtime_update:
-            enabled: false
+            enabled: "{{ vs_parameters.realtime_metrics | default(false) }}"
+            duration: 0
+          client_log_filters: >-
+            {{ vs_parameters.client_log_filters if vs_parameters.client_log_filters is defined
+            and avi_credentials.api_version >= '31.1.1' else omit }}

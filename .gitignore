@@ -9,3 +9,5 @@ sensitive*
 license.yml
 test*
 archive/**
+env
+.ansible

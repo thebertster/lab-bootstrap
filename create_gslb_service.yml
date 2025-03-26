@@ -56,6 +56,22 @@
       loop_control:
         loop_var: gslb_service_group
 
+    - name: "Create GSLB Health Monitor"
+      vmware.alb.avi_healthmonitor:
+        avi_credentials:
+          controller: "{{ gslb_sites[gslb_leader_site].controller_address }}"
+          username: "{{ gslb_account.name }}"
+          password: "{{ gslb_account.password }}"
+          api_version: "{{ gslb_account.api_version }}"
+        name: '{{ "GSLB-HM-" + gslb_service.name }}'
+        is_federated: true
+        monitor_port: "{{ gslb_service.health_monitor_port | default(omit) }}"
+        type: '{{ gslb_service.health_monitor_type | default("HEALTH_MONITOR_PING") }}'
+        https_monitor: "{{ gslb_service.https_monitor | default(omit) }}"
+        http_monitor: "{{ gslb_service.http_monitor | default(omit) }}"
+      register: gslb_health_monitor
+      when: gslb_service.health_monitor_refs is not defined
+
     - name: "Create GSLB Service"
       vmware.alb.avi_gslbservice:
         avi_credentials:
@@ -68,4 +84,4 @@
         pool_algorithm: "{{ gslb_service.algorithm | default(omit) }}"
         down_response: "{{ gslb_service.down_response | default(omit) }}"
         groups: "{{ service_groups }}"
-        health_monitor_refs: "{{ gslb_service.health_monitor_refs | default(omit) }}"
+        health_monitor_refs: "{{ gslb_service.health_monitor_refs if gslb_service.health_monitor_refs is defined else [gslb_health_monitor.obj.url] }}"

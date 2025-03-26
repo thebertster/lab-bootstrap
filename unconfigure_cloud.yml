@@ -122,6 +122,5 @@
         avi_credentials: "{{ avi_credentials }}"
         api_context: "{{ avi_api_context | default(omit) }}"
         name: "{{ cloud_parameters.name }}"
-        vtype: "CLOUD_NONE"
         state: absent
       when: cloud_parameters.name != "Default-Cloud"
